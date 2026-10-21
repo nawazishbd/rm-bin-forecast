@@ -1,0 +1,106 @@
+rules_version = '2';
+
+/* ============================================================
+   RM Bin Forecast — Firestore security rules
+   ------------------------------------------------------------
+   INSTALL (one time): Firebase Console → Firestore Database
+   → "Rules" tab → delete everything → paste this file → Publish.
+
+   MODEL
+     cfg/access      one document: { owner: "your@email" }
+     members/{email} one document per approved person: { role: "admin"|"editor"|"viewer" }
+     cfg/bins|lines|stock|history   settings + saved records
+     formulas/{id}   feed formulas
+     plan/{id}       feed plan runs
+
+   FIRST RUN: while cfg/access does not exist yet, the first person
+   who signs in becomes the owner/admin automatically. After that,
+   only admins can change the list.
+   ============================================================ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function email() {
+      return request.auth.token.email.lower();
+    }
+    function accessRef() {
+      return /databases/$(database)/documents/cfg/access;
+    }
+    function configured() {
+      return exists(accessRef());
+    }
+    function ownerEmail() {
+      return configured() ? get(accessRef()).data.owner.lower() : '';
+    }
+    /* nothing configured yet → allow the very first signed-in user to set things up */
+    function boot() {
+      return signedIn() && !configured();
+    }
+    function memberRef() {
+      return /databases/$(database)/documents/members/$(email());
+    }
+    /* the owner named in cfg/access is ALWAYS admin — even before their members row exists */
+    function isOwner() {
+      return signedIn() && configured() && ownerEmail() == email();
+    }
+    function role() {
+      if (isOwner()) {
+        return 'admin';
+      }
+      return exists(memberRef()) ? get(memberRef()).data.role : '';
+    }
+    function isAdmin() {
+      return signedIn() && (boot() || isOwner() || role() == 'admin');
+    }
+    function canWrite() {
+      return signedIn() && (boot() || role() in ['admin', 'editor']);
+    }
+    function canRead() {
+      return signedIn() && (boot() || role() in ['admin', 'editor', 'viewer']);
+    }
+
+    /* ---------- settings documents ---------- */
+    match /cfg/access {
+      allow read:            if signedIn();
+      allow create:          if boot() && request.resource.data.owner.lower() == email();
+      allow update, delete:  if signedIn() && role() == 'admin';
+    }
+
+    /* ---------- approved people ---------- */
+    match /members/{memberEmail} {
+      allow read:   if signedIn();
+      /* an admin adds people; on first run the founder adds themselves */
+      allow create: if isAdmin() || (boot() && memberEmail == email()) || (memberEmail == email() && memberEmail == ownerEmail());
+      /* the owner's own row can never be downgraded or deleted */
+      allow update: if isAdmin() && (memberEmail != ownerEmail() || request.resource.data.role == 'admin');
+      allow delete: if isAdmin() && memberEmail != ownerEmail();
+    }
+
+    /* ---------- other settings: bins, lines, stock, history ---------- */
+    match /cfg/{docId} {
+      allow read:  if canRead();
+      allow write: if canWrite() && docId != 'access';
+    }
+
+    /* ---------- feed formulas ---------- */
+    match /formulas/{formulaId} {
+      allow read:  if canRead();
+      allow write: if canWrite();
+    }
+
+    /* ---------- feed plan runs ---------- */
+    match /plan/{runId} {
+      allow read:  if canRead();
+      allow write: if canWrite();
+    }
+
+    /* ---------- everything else is closed ---------- */
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
