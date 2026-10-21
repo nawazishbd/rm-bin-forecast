@@ -1528,6 +1528,10 @@ async function startCloud(){
     const role=roleOf();
     ctx.admin=(role==='admin')||boot;
     ctx.write=ctx.admin||role==='editor';
+    /* self-repair: owner without a members row gets one (rules allow it) */
+    if(role==='admin'&&!(S.members||[]).some(m=>String(m.email||'').toLowerCase()===em)){
+      ctx.db.doc('members/'+em).set({email:em,role:'admin',addedAt:Date.now()}).catch(()=>{});
+    }
     if(!role&&!boot){
       ctx.mode='locked';
       loginScreen('Signed in as '+em+' — this login works, but the email has no role in this project yet. An admin must approve it (Access tab). If you are the first owner and got stuck, set cfg/access owner = '+em+' and create members/'+em+' with role admin in Firestore → Data.');
@@ -1585,7 +1589,7 @@ async function boot(){
     return;
   }
   FB.onAuth(async user=>{
-    if(!user){ctx.mode='loading';loginScreen('');return;}
+    if(!user){if(ctx.mode!=='cloud')loginScreen('');return;}   /* ignore stale null events once signed in */
     ctx.me={email:user.email,name:user.email,uid:user.uid};
     await startCloud();
   });
