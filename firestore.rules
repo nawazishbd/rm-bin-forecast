@@ -1,23 +1,5 @@
 rules_version = '2';
 
-/* ============================================================
-   RM Bin Forecast — Firestore security rules
-   ------------------------------------------------------------
-   INSTALL (one time): Firebase Console → Firestore Database
-   → "Rules" tab → delete everything → paste this file → Publish.
-
-   MODEL
-     cfg/access      one document: { owner: "your@email" }
-     members/{email} one document per approved person: { role: "admin"|"editor"|"viewer" }
-     cfg/bins|lines|stock|history   settings + saved records
-     formulas/{id}   feed formulas
-     plan/{id}       feed plan runs
-
-   FIRST RUN: while cfg/access does not exist yet, the first person
-   who signs in becomes the owner/admin automatically. After that,
-   only admins can change the list.
-   ============================================================ */
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -47,11 +29,9 @@ service cloud.firestore {
     function isOwner() {
       return signedIn() && configured() && ownerEmail() == email();
     }
+    /* functions allow ONE expression — no if/return statements */
     function role() {
-      if (isOwner()) {
-        return 'admin';
-      }
-      return exists(memberRef()) ? get(memberRef()).data.role : '';
+      return isOwner() ? 'admin' : (exists(memberRef()) ? get(memberRef()).data.role : '');
     }
     function isAdmin() {
       return signedIn() && (boot() || isOwner() || role() == 'admin');
