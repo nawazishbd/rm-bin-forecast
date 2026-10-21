@@ -267,6 +267,9 @@ details.binsec[open]>summary .hint{padding-left:38px}
 .login .err{min-height:16px}
 .who-mail{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #gate .gate{max-width:520px}
+
+.login ol.diag{margin:0;padding-left:20px;font-size:13px;line-height:1.6;color:var(--ink)}
+.login ol.diag code{font-family:var(--f-mono);font-size:12px;background:var(--surface2);padding:1px 4px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -1441,6 +1444,7 @@ function adapter(mods){
       return {
         async set(data){await setDoc(ref,JSON.parse(JSON.stringify(data)));},
         async delete(){await deleteDoc(ref);},
+        async get(){const snap=await mods.getDoc(ref);return {exists:snap.exists(),data:()=>snap.data()||{}};},
         onSnapshot(cb,err){
           return onSnapshot(ref,snap=>cb({exists:snap.exists(),data:()=>snap.data()||{}}),e=>{if(err)err(e);});
         }
@@ -1474,9 +1478,37 @@ async function initFirebase(){
     db:adapter(Object.assign({db},fsMod))
   };
 }
+function rulesBlockedScreen(msg,detail){
+  ctx.mode='locked';ctx.admin=false;ctx.write=false;
+  $('#app').hidden=true;
+  const g=$('#gate');g.hidden=false;
+  g.innerHTML='<div class="login"><h2>Almost there — Firestore is locked</h2>'+
+    '<p class="lg-sub">Signed in as <b>'+esc((ctx.me&&ctx.me.email)||'')+'</b></p>'+
+    '<div class="note" style="margin-bottom:14px">'+esc(msg)+'</div>'+
+    '<ol class="diag">'+
+      '<li>Open <b>Firebase Console → Build → Firestore Database → Rules</b> tab.</li>'+
+      '<li>Delete everything in the editor.</li>'+
+      '<li>Paste the whole <code>firestore.rules</code> file from your dashboard folder.</li>'+
+      '<li>Press <b>Publish</b>, then click the button below.</li>'+
+    '</ol>'+
+    (detail?'<pre class="copy" style="max-height:120px;margin-top:10px">'+esc(detail)+'</pre>':'')+
+    '<div style="display:flex;gap:8px;margin-top:14px"><button class="btn pri" id="diag-retry">Rules published — retry</button>'+
+    '<button class="btn" id="diag-out">Sign out</button></div></div>';
+  $('#diag-retry').onclick=async()=>{ctx.mode='loading';gateMsg('Checking again','Re-reading Firestore rules…');try{await startCloud();}catch(e){gateMsg('Still blocked',(e&&e.message)||'Retry after publishing the rules.');}};
+  $('#diag-out').onclick=doSignOut;
+}
 async function startCloud(){
   ctx.mode='cloud';ctx.db=FB.db;
   const em=(ctx.me&&ctx.me.email?ctx.me.email:'').toLowerCase();
+  /* probe: can we read the access document at all? if not, the rules are still the default (locked) */
+  try{
+    await FB.db.doc('cfg/access').get();
+  }catch(e){
+    const m=(e&&e.message)||'';
+    if(/permission|insufficient|denied/i.test(m)){rulesBlockedScreen('Firestore refused the connection, so the security rules are still blocking the dashboard.',m);return;}
+    if(/not-found|does not exist|404/i.test(m)){rulesBlockedScreen('The Firestore database was not found in this project. Create it (Build → Firestore Database → Create database).',m);return;}
+    throw e;
+  }
   let opened=false,gotAccess=false;
   const onErr=e=>{
     const c=(e&&e.code)||'';
@@ -1498,7 +1530,7 @@ async function startCloud(){
     ctx.write=ctx.admin||role==='editor';
     if(!role&&!boot){
       ctx.mode='locked';
-      loginScreen('Signed in as '+em+', but this email has no role yet. Ask the admin to approve it on the Access tab.');
+      loginScreen('Signed in as '+em+' — this login works, but the email has no role in this project yet. An admin must approve it (Access tab). If you are the first owner and got stuck, set cfg/access owner = '+em+' and create members/'+em+' with role admin in Firestore → Data.');
       return;
     }
     if(ctx.mode==='locked')ctx.mode='cloud';

@@ -14,12 +14,12 @@
    ============================================================ */
 
 window.FIREBASE_CONFIG = {
-  apiKey:            "AIzaSyAVzYHUMeBEqA7Call1w8WljwIXm563PgM",
-  authDomain:        "rm-bin-forecast.firebaseapp.com",
-  projectId:         "rm-bin-forecast",
-  storageBucket:     "rm-bin-forecast.firebasestorage.app",
-  messagingSenderId: "847083972592",
-  appId:             "1:847083972592:web:b25968561706e97e339f35"
+  apiKey:            "PASTE_API_KEY",
+  authDomain:        "PASTE_PROJECT_ID.firebaseapp.com",
+  projectId:         "PASTE_PROJECT_ID",
+  storageBucket:     "PASTE_PROJECT_ID.firebasestorage.app",
+  messagingSenderId: "PASTE_SENDER_ID",
+  appId:             "PASTE_APP_ID"
 };
 
 /* Optional extras you can set later (not required to start) */
