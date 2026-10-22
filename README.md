@@ -1,4 +1,4 @@
-# RM Bin Forecast — Firebase edition (v3.0.1)
+# RM Bin Forecast — Firebase edition (v3.0.3)
 
 A cloud version of your dashboard: **one link, any device, shared data, email + password login, roles, saved history.**
 Runs entirely on the **Firebase Spark (free) plan** — no credit card.
@@ -12,6 +12,7 @@ Created & maintained by **Md Nawazish Ali** · Deputy Manager, Operations · Aki
 If your dashboard said **"not approved"** or kept you on the sign-in screen even though you are the owner, that was a rules bug in the first copy — it is fixed in the files in this folder.
 
 1. **Firestore Database → Rules** → delete everything → paste the new `firestore.rules` from this folder → **Publish**.
+   *(If the console says `Unexpected 'if'`, you pasted the older rules file — this one is all single-expression functions.)*
 2. Replace `index.html` (and `firebase-config.js`, if you keep your keys in it) on your host.
 3. Open the site and press **Ctrl + F5** (hard refresh).
 4. Sign in. The owner named in `cfg/access` is now always treated as admin, and the dashboard creates the missing `members/{your-email}` row itself.
@@ -205,6 +206,8 @@ Not available on Spark (and not needed here): Cloud Functions, Cloud Storage, ph
 | Message / symptom | Cause | Fix |
 |---|---|---|
 | `auth/api-key-not-valid` | `firebase-config.js` still has placeholders or a wrong key | Re-copy the config from Console → Project settings → Your apps |
+| `Cannot read properties of null (reading 'signIn')` | The page tried to sign in before the Firebase libraries had finished downloading (slow link, or a submit straight after typing) | Fixed in this build: the button shows **Connecting…** and stays disabled until the SDK is ready. Replace `index.html` |
+| Sign-in button stuck on "Connecting…" | The Firebase SDK cannot be downloaded | Check the internet / office firewall; the dashboard already retries from a second CDN (esm.sh). Reload after fixing the connection |
 | `auth/unauthorized-domain` | Your site's domain is not in the allow-list | Authentication → Settings → Authorized domains → add `username.github.io` or your domain |
 | `auth/invalid-credential` / "Wrong email or password" | Typo, or the user was never created | Check Authentication → Users; reset the password |
 | "Signed in as … but this email has no role yet" | Account exists, no role | Dashboard → Access tab → approve the email |

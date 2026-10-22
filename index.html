@@ -1395,10 +1395,20 @@ function bindBins(){
 
 /* ---------- firebase boot ---------- */
 const FB_VER='10.12.2';
-let FB=null;
+let FB=null, fbReady=null, fbErr=null;
 function hasFbConfig(){
   const c=window.FIREBASE_CONFIG;
   return !!(c&&c.apiKey&&c.projectId&&!/PASTE|YOUR_/i.test(String(c.apiKey)+String(c.projectId)));
+}
+function fbLoad(){
+  if(!fbReady){
+    fbReady=initFirebase().then(f=>{FB=f;return f;},e=>{fbErr=e;throw e;});
+    fbReady.catch(()=>{});            /* nobody is awaiting it yet — no unhandled rejection */
+  }
+  return fbReady;
+}
+function withTimeout(pr,ms){
+  return Promise.race([pr,new Promise((_,rej)=>setTimeout(()=>{const e=new Error('timeout');e.code='fb/timeout';rej(e);},ms))]);
 }
 function loginScreen(msg){
   ctx.mode='locked';ctx.admin=false;ctx.write=false;
@@ -1409,23 +1419,35 @@ function loginScreen(msg){
     '<form id="loginform" autocomplete="on">'+
     '<label class="fld"><span>Email</span><input type="email" id="lg-email" autocomplete="username" placeholder="name@akij.net" required></label>'+
     '<label class="fld"><span>Password</span><input type="password" id="lg-pass" autocomplete="current-password" placeholder="••••••••" required></label>'+
-    '<button class="btn pri" type="submit">Sign in</button>'+
+    '<button class="btn pri" type="submit" id="lg-btn" disabled>Connecting…</button>'+
     '<div class="err" id="lg-err" role="alert"></div>'+
     '<button class="btn sm lg-link" type="button" id="lg-forgot">Forgot password?</button></form>'+
     '<p class="lg-note">Accounts are created by the dashboard admin in <b>Firebase Console → Authentication → Users</b>. If you cannot sign in, ask '+esc(CREATOR.name)+' ('+esc(CREATOR.role)+') to add your email.</p>'+
     '<p class="lg-note">Signed in but told “not approved”? Your email needs a role in the Access tab.</p></div>';
+  const lgBtn=$('#lg-btn');
+  const setBtn=(busy,txt)=>{if(!lgBtn)return;lgBtn.disabled=!!busy;lgBtn.textContent=txt||(busy?'Connecting…':'Sign in');};
+  /* the sign-in button stays disabled until the Firebase SDK has finished downloading */
+  if(FB)setBtn(false);else fbLoad().then(()=>setBtn(false),()=>setBtn(false));
   $('#loginform').onsubmit=async ev=>{
     ev.preventDefault();
     const em=$('#lg-email').value.trim(),pw=$('#lg-pass').value,err=$('#lg-err');
     err.textContent='';
-    try{await FB.signIn(em,pw);}
+    setBtn(true,'Signing in…');
+    try{
+      const fb=await withTimeout(fbLoad(),25000);
+      await fb.signIn(em,pw);
+    }
     catch(e){
       const c=(e&&e.code)||'';
-      err.textContent=c==='auth/invalid-credential'||c==='auth/wrong-password'?'Wrong email or password.'
+      err.textContent=c==='fb/timeout'?'Firebase is taking too long to load. Check your internet connection and press Sign in again.'
+        :c==='fb/load'?'The Firebase libraries could not be downloaded. Check your internet connection (or office firewall / ad-blocker), then reload the page.'
+        :c==='auth/invalid-credential'||c==='auth/wrong-password'?'Wrong email or password.'
         :c==='auth/user-not-found'?'No account with this email. Ask the admin to create it.'
         :c==='auth/too-many-requests'?'Too many attempts. Wait a few minutes and try again.'
         :c==='auth/network-request-failed'?'No internet connection.'
+        :c==='auth/api-key-not-valid'||c==='auth/invalid-api-key'?'firebase-config.js has a wrong or placeholder API key.'
         :(e&&e.message)||'Could not sign in.';
+      setBtn(false);
     }
   };
   $('#lg-forgot').onclick=async()=>{
@@ -1460,11 +1482,31 @@ function adapter(mods){
     }
   };
 }
+/* the SDK is downloaded at run time; gstatic is the primary copy, esm.sh the backup */
+async function loadSdk(kind){
+  if(kind==='g'){
+    return await Promise.all([
+      import('https://www.gstatic.com/firebasejs/'+FB_VER+'/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/'+FB_VER+'/firebase-auth.js'),
+      import('https://www.gstatic.com/firebasejs/'+FB_VER+'/firebase-firestore.js')
+    ]);
+  }
+  return await Promise.all([
+    import('https://esm.sh/firebase@'+FB_VER+'/app'),
+    import('https://esm.sh/firebase@'+FB_VER+'/auth'),
+    import('https://esm.sh/firebase@'+FB_VER+'/firestore')
+  ]);
+}
 async function initFirebase(){
-  const appMod=await import('https://www.gstatic.com/firebasejs/'+FB_VER+'/firebase-app.js');
-  const authMod=await import('https://www.gstatic.com/firebasejs/'+FB_VER+'/firebase-auth.js');
-  const fsMod=await import('https://www.gstatic.com/firebasejs/'+FB_VER+'/firebase-firestore.js');
-  const app=appMod.initializeApp(window.FIREBASE_CONFIG);
+  let mods=null,lastErr=null;
+  for(const kind of ['g','e']){
+    try{mods=await loadSdk(kind);break;}catch(e){lastErr=e;}
+  }
+  if(!mods){const er=new Error((lastErr&&lastErr.message)||'The Firebase libraries could not be downloaded.');er.code='fb/load';throw er;}
+  const appMod=mods[0],authMod=mods[1],fsMod=mods[2];
+  let app;
+  try{app=(appMod.getApps&&appMod.getApps().length)?appMod.getApps()[0]:appMod.initializeApp(window.FIREBASE_CONFIG);}
+  catch(e){app=appMod.initializeApp(window.FIREBASE_CONFIG,'rmf-'+Date.now());}
   const auth=authMod.getAuth(app);
   try{await authMod.setPersistence(auth,authMod.browserLocalPersistence);}catch(e){}
   const db=fsMod.getFirestore(app);
@@ -1573,7 +1615,7 @@ async function doSignOut(){
   try{await FB.signOut();}catch(e){}
   loginScreen('You have signed out.');
 }
-function gateMsg(title,text){$('#app').hidden=true;const g=$('#gate');g.hidden=false;g.innerHTML='<h2>'+esc(title)+'</h2><p>'+esc(text)+'</p>';}
+function gateMsg(title,text,retry){$('#app').hidden=true;const g=$('#gate');g.hidden=false;g.innerHTML='<div class="login"><h2>'+esc(title)+'</h2><p class="lg-sub">'+esc(text)+'</p>'+(retry?'<button class="btn pri" id="gm-retry">Try again</button>':'')+'</div>';const b=$('#gm-retry');if(b)b.onclick=()=>location.reload();}
 function openApp(){$('#gate').hidden=true;$('#app').hidden=false;const h=(location.hash||'').slice(1);if(TABS.some(t=>t[0]===h)&&(h!=='users'||ctx.admin))ctx.tab=h;render();}
 async function boot(){
   bindGlobal();
@@ -1583,9 +1625,9 @@ async function boot(){
   }
   loginScreen('');
   try{
-    FB=await initFirebase();
+    await fbLoad();
   }catch(e){
-    gateMsg('Firebase could not start','Check firebase-config.js and your internet connection. '+(e&&e.message?e.message:''));
+    gateMsg('Firebase could not start','Check your internet connection, then try again. '+((e&&e.message)||''),true);
     return;
   }
   FB.onAuth(async user=>{
@@ -1594,7 +1636,6 @@ async function boot(){
     await startCloud();
   });
 }
-
 window.__rmf={S,F,ctx,compute,render,boot,parseGrid,parseTextToFeeds,setStock,stockOf,intakeRows,reportOf,doShare,makeSnapshot,historyReport,saveSnapshot,binRows};
 boot();
 })();
