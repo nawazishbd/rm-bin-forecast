@@ -22,6 +22,7 @@ window.FIREBASE_CONFIG = {
   appId:             "1:847083972592:web:b25968561706e97e339f35"
 };
 
+
 /* Optional extras you can set later (not required to start) */
 window.RMF_OPTIONS = {
   /* Show the "Photo of formulation" upload in the Formulas tab.

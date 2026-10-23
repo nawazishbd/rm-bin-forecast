@@ -270,6 +270,229 @@ details.binsec[open]>summary .hint{padding-left:38px}
 
 .login ol.diag{margin:0;padding-left:20px;font-size:13px;line-height:1.6;color:var(--ink)}
 .login ol.diag code{font-family:var(--f-mono);font-size:12px;background:var(--surface2);padding:1px 4px;border-radius:4px}
+/* ---------- share-image preview ---------- */
+.pngcap{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;padding:2px 0 8px}
+.pngprev{max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface2);padding:8px;margin-top:6px}
+.pngprev img{display:block;width:100%;height:auto;border-radius:6px}
+@media (max-width:640px){.pngprev{max-height:46vh}}
+
+/* lock screen */
+body.is-locked #lockBtn{display:none}
+/* ==================== mobile / tablet layout ==================== */
+.filtToggle{display:none}
+@media (max-width:900px){
+  .tabs{position:sticky;top:0;z-index:7;background:var(--bg)}
+  /* tablets and phones in landscape: compact header, no separate byline row */
+  .top{gap:8px;padding-block:10px 4px;align-items:flex-start}
+  .brand{gap:10px;min-width:0;flex:1 1 100%;overflow:hidden}
+  .brand>div{min-width:0;overflow:hidden}
+  .logo-box img{height:28px}
+  .brand h1{font-size:22px}
+  .brand p{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .byline{display:none}
+  .topright{width:100%;justify-content:space-between;gap:8px;flex-wrap:nowrap;align-items:center}
+  .topright .who{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+@media (max-width:760px){
+  body{padding-left:10px;padding-right:10px;padding-block:0 26px;font-size:13.5px}
+  /* header: two compact rows instead of a wall of text */
+  .top{gap:8px;padding-block:10px 4px;align-items:flex-start}
+  .brand{gap:9px;align-items:center;min-width:0;flex:1 1 100%;overflow:hidden}
+  .brand>div{min-width:0;overflow:hidden}
+  .logo-box{padding:3px 6px;border-radius:6px}
+  .logo-box img{height:26px}
+  .brand h1{font-size:20px;line-height:1.1}
+  .brand p{font-size:11px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .byline{display:none}
+  .topright{width:100%;justify-content:space-between;gap:6px;flex-wrap:nowrap}
+  .topright .who{font-size:11.5px;gap:6px;overflow:hidden;text-overflow:ellipsis}
+  .topright .btn{min-height:32px;padding:5px 10px;font-size:12.5px}
+  /* tabs: swipeable strip with the active tab kept in view */
+  .tabs{overflow-x:auto;scrollbar-width:none;gap:0;padding-top:2px;-webkit-overflow-scrolling:touch}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{padding:11px 14px;font-size:14px;flex:0 0 auto}
+  .tabfade{position:sticky;right:0;align-self:stretch;flex:0 0 26px;margin-left:-26px;pointer-events:none;
+    background:linear-gradient(to right,rgba(0,0,0,0),var(--bg) 70%)}
+  .tabs.at-end .tabfade{display:none}
+  /* filters collapse into one line, opened on demand */
+  #filters{position:static;display:grid;grid-template-columns:1fr 1fr;gap:9px;padding-block:8px}
+  #filters .fld{display:none;min-width:0}
+  #filters.open .fld{display:flex}
+  #filters .fld:last-child{grid-column:1/-1}
+  #filters input:not([type=radio]):not([type=checkbox]),#filters select{width:100%;font-size:16px;min-height:40px}
+  #filters .quick{display:flex;gap:6px}
+  #filters .quick .btn{flex:1 1 0;justify-content:center}
+  .filtToggle{display:flex;grid-column:1/-1;align-items:center;gap:8px;width:100%;min-height:42px;padding:8px 12px;
+    border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);font-weight:600;cursor:pointer;text-align:left}
+  .filtToggle .ft{flex:none}
+  .filtToggle .fs{flex:1 1 auto;font-weight:400;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .filtToggle .chev{flex:none;color:var(--muted);transition:transform .15s}
+  #filters.open .filtToggle .chev{transform:rotate(180deg)}
+  /* cards + tables */
+  .card{border-radius:10px}
+  .card>header{padding:11px 12px;gap:8px}
+  .card>header h2{font-size:18px}
+  .card>header small{font-size:11.5px;line-height:1.35}
+  .hdr-tools{gap:6px;width:100%}
+  table{font-size:12.5px}
+  th,td{padding:6px 7px}
+  thead th{font-size:10.5px;letter-spacing:.02em;padding:7px 7px;white-space:normal;line-height:1.25}
+  .tw{-webkit-overflow-scrolling:touch}
+  .tw>table:not(.bintab){min-width:0}
+  td{overflow-wrap:anywhere}
+  td .chip,.badge{aspect-ratio:auto}
+  /* tables that start with a Sl column and carry an Intake column */
+  table.has-sl th:first-child,table.has-sl td:first-child{width:26px;padding-left:4px;padding-right:4px}
+  table.has-intake th:nth-child(4),table.has-intake td:nth-child(4){width:1%;white-space:nowrap;text-align:center}
+  table.has-intake td:nth-child(4) .chip{font-size:10px;padding:1px 4px;margin:0 2px 0 0}
+  /* numbers never split; the mini bar behind quantities stays a hint */
+  td.num,th.num{white-space:nowrap}
+  td.mt{min-width:0}
+  td.mt i{opacity:.22}
+  #v-final table{table-layout:fixed}
+  #v-final th:first-child,#v-final td:first-child{width:30px}
+  #v-final th:nth-child(2),#v-final td:nth-child(2){width:84px}
+  #v-final th:last-child,#v-final td:last-child{width:86px}
+  #v-final td:first-child{white-space:nowrap}
+  #v-intake .tw>table:not(.bintab) th:first-child,#v-intake .tw>table:not(.bintab) td:first-child{width:26px}
+  /* share buttons: a tidy 2 x 2 block */
+  .share{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .share .btn{justify-content:center;min-height:34px;padding:5px 8px;font-size:12.5px}
+  /* summary tiles */
+  .kpis{grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+  .kpis>.kpi:last-child:nth-child(odd){grid-column:1/-1}
+  .kpi{padding:10px 11px;border-radius:8px}
+  .kpi b{font-size:22px}
+  .kpi small{font-size:11px}
+  .kpi .u{font-size:12px}
+  /* add-run form: two columns, code and the button full width */
+  .addform{display:grid;grid-template-columns:1fr 1fr;gap:9px;align-items:end}
+  .addform .fld.grow,.addform .fld.wide,.addform button[type=submit]{grid-column:1/-1}
+  .addform button[type=submit]{justify-content:center;min-height:42px}
+  #addform input:not([type=radio]):not([type=checkbox]),#addform select{width:100%!important;font-size:16px;min-height:40px}
+  /* intake: the per-bin stock table becomes a small card per bin */
+  #v-intake .card>header .rmtot{width:100%;gap:5px}
+  .intake-grid{gap:12px}
+  /* bin setup: each bin becomes a labelled card */
+  #v-bins table thead{display:none}
+  #v-bins table,#v-bins tbody,#v-bins tr{display:block;width:auto}
+  #v-bins tr{border:1px solid var(--line);border-radius:10px;background:var(--surface2);margin:0 10px 10px;padding:4px 0}
+  #v-bins td{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding:6px 11px;border:0;min-height:36px;min-width:0}
+  #v-bins td::before{content:attr(data-l);flex:0 0 96px;font-size:10px;line-height:1.2;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  #v-bins td:first-child{padding-top:9px;padding-bottom:9px;border-bottom:1px solid var(--line);margin-bottom:5px}
+  #v-bins td:first-child::before{display:none}
+  #v-bins td:first-child .num{font-size:16px}
+  #v-bins td:last-child{padding-bottom:10px}
+  #v-bins td:last-child:empty{display:none}
+  #v-bins select,#v-bins input[type=text],#v-bins input[type=number]{width:100%!important;max-width:none;font-size:16px;min-height:38px;flex:1 1 auto;min-width:0}
+  #v-bins td .chip{margin:2px 5px 2px 0}
+  /* modal fills the phone screen */
+  .ov{padding:8px}
+  .modal{max-height:94vh;border-radius:12px}
+  .modal>header{padding:12px 14px}
+  .modal>header h2{font-size:19px}
+  .modal .mb{padding:12px 14px}
+  .modal>footer{padding:10px 12px;gap:7px}
+  .modal>footer .btn{flex:1 1 120px;justify-content:center;min-height:42px}
+  .pngprev{max-height:42vh}
+  .toast{font-size:12.5px;padding:8px 14px;bottom:max(12px,env(safe-area-inset-bottom,0px))}
+  .empty{padding:20px 12px;font-size:12.5px}
+  .note{font-size:12.5px}
+  .lock{padding:22px 16px 18px}
+  .gate{margin:6vh auto 10vh}
+  .gate{padding:6vh 0 24px}
+}
+@media (max-width:700px){
+  /* formulas: code + name + actions only */
+  #v-formulas table th:nth-child(3),#v-formulas table td:nth-child(3),
+  #v-formulas table th:nth-child(5),#v-formulas table td:nth-child(5){display:none}
+  #v-formulas table td:last-child{white-space:nowrap}
+  #v-formulas table td .btn{padding:0 8px;min-height:30px;font-size:12px}
+  /* feed plan list: every run becomes a small card with labels */
+  #plan-list table thead{display:none}
+  #plan-list table,#plan-list tbody{display:block;width:auto;table-layout:auto}
+  #plan-list tr:not(.grp){display:flex;flex-wrap:wrap;align-items:center;width:auto;
+    border:1px solid var(--line);border-radius:10px;background:var(--surface2);margin:0 10px 10px;padding:4px 0}
+  #plan-list table tr:not(.grp)>td{display:flex;flex:1 1 100%;align-items:center;gap:10px;padding:5px 11px;border:0;min-width:0;text-align:left}
+  #plan-list table tr:not(.grp)>td::before{content:attr(data-l);flex:0 0 62px;font-size:10px;line-height:1.2;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  #plan-list table tr:not(.grp)>td:nth-child(3){order:-3;flex:1 1 100%;padding:10px 11px 8px;border-bottom:1px solid var(--line);margin-bottom:4px;font-weight:600;font-size:14px}
+  #plan-list table tr:not(.grp)>td:nth-child(1),
+  #plan-list table tr:not(.grp)>td:nth-child(2){order:-2;flex:0 0 auto;padding:4px 11px 6px}
+  #plan-list table tr:not(.grp)>td:nth-child(1){padding-right:14px}
+  #plan-list table tr:not(.grp)>td:nth-child(3)::before,
+  #plan-list table tr:not(.grp)>td:nth-child(1)::before,
+  #plan-list table tr:not(.grp)>td:nth-child(2)::before{display:none}
+  #plan-list table tr:not(.grp)>td:last-child{flex:1 1 100%;padding-bottom:10px}
+  #plan-list table tr:not(.grp)>td:last-child::before{display:none}
+  #plan-list table tr:not(.grp)>td:last-child .btn{width:100%;justify-content:center;min-height:34px;font-size:12.5px}
+  #plan-list tr.grp{display:block;border:0;background:none;margin:14px 12px 2px;padding:0;font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--primary)}
+  #plan-list tr.grp td{display:block!important;width:auto!important;padding:0!important;margin:0!important;border:0!important;background:none!important;
+    white-space:normal;line-height:1.4;font-size:12px;order:0!important;flex:none!important}
+  #plan-list tr.grp td::before{display:none!important}
+  #plan-list table tfoot tr:not(.grp){display:flex;border:0;background:none;margin:0;padding:9px 12px;border-top:1px solid var(--line);border-radius:0}
+  #plan-list table tfoot tr:not(.grp)>td{display:block;flex:0 0 auto;padding:0 8px 0 0;border:0;background:none;font-weight:700;font-size:12px}
+  #plan-list table tfoot tr:not(.grp)>td:last-child{margin-left:auto;padding:0}
+  #plan-list table tfoot tr:not(.grp)>td:empty{display:none}
+  /* the Firebase edition's total row carries its own empty spacer cell */
+  #plan-list table tfoot tr:not(.grp)>td[colspan]:last-child{display:none}
+  #plan-list table tfoot td::before{display:none}
+  #plan-list .line-sel{width:100%;max-width:none;font-size:16px;min-height:38px}
+  #plan-list table td input[type=number]{width:100%;font-size:16px;padding:6px 8px;min-height:38px}
+  #plan-list table td .badge{font-size:11px}
+  /* intake bin stock: one card per bin with labelled inputs */
+  #v-intake table.bintab{display:block;width:100%;min-width:0}
+  #v-intake table.bintab thead{display:none}
+  #v-intake table.bintab tbody{display:block}
+  #v-intake table.bintab tbody tr{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;
+    border:1px solid var(--line);border-radius:10px;background:var(--surface2);margin:0 10px 10px;padding:9px 11px}
+  #v-intake table.bintab tbody td{display:flex;flex-direction:column;align-items:flex-start;gap:3px;border:0;padding:0;text-align:left;min-width:0}
+  #v-intake table.bintab tbody td::before{content:attr(data-l);font-size:9.5px;line-height:1.2;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  #v-intake table.bintab tbody td:first-child{grid-column:1/-1;flex-direction:row;align-items:baseline;flex-wrap:wrap;gap:4px 8px;
+    padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:2px}
+  #v-intake table.bintab tbody td:first-child::before{display:none}
+  #v-intake table.bintab tbody td:first-child .num{font-size:15px;font-weight:700}
+  #v-intake table.bintab tbody td:first-child .bmat{font-size:12px;color:var(--muted);flex:1 1 auto}
+  #v-intake table.bintab tbody td[data-l^="Material"]{grid-column:1/-1;order:0}
+  #v-intake table.bintab tbody td[data-l^="Forecast"]{order:1}
+  #v-intake table.bintab tbody td[data-l^="Required"]{order:2}
+  #v-intake table.bintab tbody td[data-l^="Stock"]{order:3}
+  #v-intake table.bintab tbody td[data-l^="Capacity"]{order:4}
+  #v-intake table.bintab tbody td{align-self:start}
+  #v-intake table.bintab tbody td input{width:100%;font-size:16px;min-height:38px;padding:5px 8px;text-align:right}
+  #v-intake table.bintab tbody td.num{font-size:14px;font-weight:600}
+  #v-intake table.bintab tfoot{display:block}
+  #v-intake table.bintab tfoot tr{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:3px 16px;align-items:baseline;
+    padding:9px 12px;border-top:1px solid var(--line);font-size:11.5px}
+  #v-intake table.bintab tfoot td{padding:0;border:0;flex:0 0 auto;background:none}
+  #v-intake table.bintab tfoot td:first-child{font-weight:700;flex:1 1 100%;margin-bottom:3px}
+  #v-intake table.bintab tfoot td::before{content:attr(data-l) " ";font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:400}
+  #v-intake table.bintab tfoot td:first-child::before{display:none}
+  /* formulas list: Code · Feed · Items · actions */
+  #v-formulas table{table-layout:fixed;width:100%}
+  #v-formulas th:first-child,#v-formulas td:first-child{width:52px}
+  #v-formulas th:nth-child(4),#v-formulas td:nth-child(4){width:56px;text-align:center;white-space:nowrap;font-size:11.5px}
+  #v-formulas th:last-child,#v-formulas td:last-child{width:112px;white-space:nowrap}
+  #v-formulas table td .btn{padding:0 7px;min-height:30px;font-size:12px}
+}
+}
+@media (max-width:430px){
+  .kpis{grid-template-columns:1fr 1fr}
+  .brand h1{font-size:18px}
+  .logo-box img{height:22px}
+  th,td{padding:5px 6px}
+  table{font-size:12px}
+  .share .btn{font-size:12px;padding:5px 6px}
+}
+@media (max-width:900px) and (min-width:761px){
+  .filters{position:static}
+  .brand h1{font-size:23px}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+}
+@media print{
+  .filtToggle{display:none!important}
+  #filters .fld{display:flex!important}
+}
+
 </style>
 </head>
 <body>
@@ -592,7 +815,7 @@ function scopeText(){
   return parts.join('  |  ');
 }
 function reportOf(kind,R){
-  const when='Generated '+new Date().toLocaleString('en-GB')+' · '+CREATOR.name+', '+CREATOR.org;
+  const when='Generated '+new Date().toLocaleString('en-GB')+' · '+CREATOR.org;
   if(kind==='intake12'||kind==='intake34'){
     const g=kind==='intake12'?'12':'34',rows=intakeRows(R,g),bins=binRows(R,g).filter(b=>b.qty>0);
     const tot=sumBy(rows,'mt'),rq=sumBy(bins,'qty'),st=sumBy(bins,'stock'),rq2=sumBy(bins,'req');
@@ -604,8 +827,7 @@ function reportOf(kind,R){
   }
   if(kind==='final'){
     const t1=R.stocked.map((r,i)=>[i+1,r.code,r.name,fmt(r.mt)]).concat([['','','Total raw materials',fmt(R.stockedMT)]]);
-    const t2=R.other.map((r,i)=>[i+1,r.code,r.name,fmt(r.mt,4)]).concat([['','','Total other ingredients',fmt(R.otherMT,4)]]);
-    return {title:'Final RM quantity (MT)',meta:[scopeText(),when],file:'final-rm',tables:[{sub:'Raw materials stocked in RM bins',head:['Sl','RM code','Raw material','Qty (MT)'],body:t1},{sub:'Other ingredients',head:['Sl','Code','Ingredient','Qty (MT)'],body:t2}]};
+    return {title:'RM bin final quantity (MT)',meta:[scopeText(),when],file:'final-rm',tables:[{head:['Sl','RM code','Raw material','Qty (MT)'],body:t1}]};
   }
   if(kind==='final-other'||kind==='forecast-other'){
     const rows=R.other;
@@ -630,12 +852,11 @@ function reportCsv(rep){
 function printReport(rep){
   const el=$('#print-area'),logo=$('.logo-box img');
   el.innerHTML='<div class="ph">'+(logo?'<img src="'+logo.src+'" alt="">':'')+'<div><h1>'+esc(rep.title)+'</h1>'+
-    rep.meta.map(m=>'<p>'+esc(m)+'</p>').join('')+
-    '<p>Prepared by '+esc(CREATOR.name)+' · '+esc(CREATOR.role)+' · '+esc(CREATOR.org)+'</p></div></div>'+
+    rep.meta.map(m=>'<p>'+esc(m)+'</p>').join('')+'</div></div>'+
     rep.tables.filter(t=>t.body.length).map(t=>(t.sub?'<h3>'+esc(t.sub)+'</h3>':'')+
       '<table><thead><tr>'+t.head.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+
       t.body.map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>').join('')+
-    '<div class="sign"><div>Prepared by · '+esc(CREATOR.name)+'</div><div>Checked by</div><div>Approved by</div></div>';
+    '<div class="sign"><div>Prepared by</div><div>Checked by</div><div>Approved by</div></div>';
   document.body.classList.add('printing');
   const done=()=>{document.body.classList.remove('printing');window.removeEventListener('afterprint',done);};
   window.addEventListener('afterprint',done);
@@ -644,11 +865,11 @@ function printReport(rep){
 async function doShare(kind,how){
   const R=compute(),rep=reportOf(kind,R);if(!rep)return;
   const stamp=todayStr();
-  if(how==='copy')return copyText(reportText(rep));
+  if(how==='png')return sharePng(rep);
   if(how==='csv')return saveFile(rep.file+'-'+stamp+'.csv',new Blob([reportCsv(rep)],{type:'text/csv'}));
   if(how==='print'){printReport(rep);return;}
   if(how==='pdf'){
-    if(!(window.jspdf&&window.jspdf.jsPDF)){toast('PDF tool did not load. Use Print, CSV or copy instead.',3500);return;}
+    if(!(window.jspdf&&window.jspdf.jsPDF)){toast('PDF tool did not load. Use Share image, Print or CSV instead.',3500);return;}
     const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
     doc.setFontSize(15);doc.text(rep.title,14,16);doc.setFontSize(9);doc.setTextColor(90);
     rep.meta.forEach((m,i)=>doc.text(m,14,22+i*5));
@@ -664,7 +885,7 @@ async function doShare(kind,how){
   }
 }
 function shareBar(kind){
-  return '<div class="share" data-share="'+kind+'"><button class="btn sm" data-how="pdf">PDF</button><button class="btn sm" data-how="csv">CSV</button><button class="btn sm" data-how="copy">Copy for email</button><button class="btn sm" data-how="print">Print</button></div>';
+  return '<div class="share" data-share="'+kind+'"><button class="btn sm" data-how="pdf">PDF</button><button class="btn sm" data-how="csv">CSV</button><button class="btn sm pri" data-how="png" title="Send this report on WhatsApp as a picture">Share image</button><button class="btn sm" data-how="print">Print</button></div>';
 }
 function sortSeg(){
   return '<div class="seg mini" role="group" aria-label="Sort other ingredients">'+
@@ -762,7 +983,7 @@ function intakeTablesHtml(R){
       const open=ctx._binOpen===undefined?true:ctx._binOpen;
       b='<details class="binsec"'+(open?' open':'')+'><summary>RM bin stock &amp; requirement <span class="chip">'+need.length+' bin'+(need.length===1?'':'s')+'</span>'+
         '<span class="hint">Only the bins this feed plan needs · type the MT each bin holds now</span></summary>'+
-        (need.length?'<div class="tw"><table><thead><tr><th>RM bin</th><th>Material</th><th class="r">Forecast (MT)</th><th class="r">Stock (MT)</th><th class="r">Required (MT)</th></tr></thead><tbody>'+
+        (need.length?'<div class="tw"><table class="bintab"><thead><tr><th>RM bin</th><th>Material</th><th class="r">Forecast (MT)</th><th class="r">Stock (MT)</th><th class="r">Required (MT)</th></tr></thead><tbody>'+
           need.map(r=>{
             const v=r.stock>0?r.stock.toFixed(3):'';
             return '<tr><td class="num"><b>'+esc(r.bin)+'</b></td><td>'+esc(r.name)+'</td>'+
@@ -877,7 +1098,7 @@ function makeSnapshot(label){
   };
 }
 function historyReport(h){
-  const when='Saved '+new Date(h.at).toLocaleString('en-GB')+' · '+CREATOR.name+', '+CREATOR.org;
+  const when='Saved '+new Date(h.at).toLocaleString('en-GB')+' · '+CREATOR.org;
   const t1={sub:'Feed plan',head:['Date','Shift','Code','Feed','Line','Qty (MT)','Status'],
     body:h.runs.map(r=>[r.date,r.shift,r.code,r.name,LINE_LABEL[r.line]||r.line,fmt(r.qty),r.done?'Completed':'Pending'])};
   const t2={sub:'Raw materials stocked in RM bins',head:['Sl','RM code','Raw material','Qty (MT)'],
@@ -914,17 +1135,17 @@ function viewSnapshot(id){
       '<div class="tw"><table><thead><tr>'+t.head.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+
       t.body.map(r=>'<tr>'+r.map((c,i)=>'<td'+(i===r.length-1?' class="r num"':'')+'>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>').join('')+
     '<div class="share" data-hshare="'+esc(h.id)+'" style="justify-content:flex-end;margin-top:14px">'+
-      '<button class="btn sm" data-how="pdf">PDF</button><button class="btn sm" data-how="csv">CSV</button><button class="btn sm" data-how="copy">Copy for email</button><button class="btn sm" data-how="print">Print</button></div>';
+      '<button class="btn sm" data-how="pdf">PDF</button><button class="btn sm" data-how="csv">CSV</button><button class="btn sm pri" data-how="png" title="Send this record on WhatsApp as a picture">Share image</button><button class="btn sm" data-how="print">Print</button></div>';
   modal(new Date(h.at).toLocaleString('en-GB')+' · '+h.label,body,'',null);
 }
 async function shareSnapshot(id,how){
   const h=(S.history||[]).find(x=>x.id===id);if(!h)return;
   const rep=historyReport(h),stamp=todayStr();
-  if(how==='copy')return copyText(reportText(rep));
+  if(how==='png')return sharePng(rep);
   if(how==='csv')return saveFile(rep.file+'-'+stamp+'.csv',new Blob([reportCsv(rep)],{type:'text/csv'}));
   if(how==='print')return printReport(rep);
   if(how==='pdf'){
-    if(!(window.jspdf&&window.jspdf.jsPDF)){toast('PDF tool did not load. Use Print, CSV or copy instead.',3500);return;}
+    if(!(window.jspdf&&window.jspdf.jsPDF)){toast('PDF tool did not load. Use Share image, Print or CSV instead.',3500);return;}
     const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
     doc.setFontSize(14);doc.text(rep.title,14,16);doc.setFontSize(9);doc.setTextColor(90);
     rep.meta.forEach((m,i)=>doc.text(m,14,22+i*5));
@@ -1636,7 +1857,381 @@ async function boot(){
     await startCloud();
   });
 }
-window.__rmf={S,F,ctx,compute,render,boot,parseGrid,parseTextToFeeds,setStock,stockOf,intakeRows,reportOf,doShare,makeSnapshot,historyReport,saveSnapshot,binRows};
+
+/* ==================== firebase edition: share image + phone layout ==================== */
+/* ==================== share image (PNG) ====================
+   Laid out like the printed / PDF report: logo + title, ruled tables with a grey
+   header row, section subtitles, "Prepared by / Checked by / Approved by" lines.
+   Long reports continue on further pages, each with the table header repeated. */
+const PNG_W=1000, PNG_PAD=64, PNG_SC=2, PNG_PAGE=1414, PNG_FOOT=104;
+const PNG_FS='"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif';
+const pngFont=(sz,wt)=>(wt||400)+' '+sz+'px '+PNG_FS;
+let _pngM=null;
+function pngM(){if(!_pngM){const c=document.createElement('canvas');_pngM=c.getContext('2d');}return _pngM;}
+function pngW(t,sz,wt){const m=pngM();m.font=pngFont(sz,wt);return m.measureText(String(t==null?'':t)).width;}
+function pngWrap(text,sz,wt,maxW){
+  const words=String(text==null?'':text).replace(/\s+/g,' ').trim().split(' ');
+  if(!words[0])return [''];
+  const out=[];let cur='';
+  words.forEach(w=>{const s=cur?cur+' '+w:w;if(pngW(s,sz,wt)>maxW&&cur){out.push(cur);cur=w;}else cur=s;});
+  if(cur)out.push(cur);
+  return out;
+}
+function pngRR(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+const pngIsNum=v=>{const s=String(v==null?'':v).trim();return !!s&&/^-?[\d,]+(\.\d+)?$/.test(s);};
+const pngIsTot=r=>r.some(c=>/^total\b/i.test(String(c).trim()));
+
+/* ---------- column widths ----------
+   numbers keep the width their digits need; the text columns share what is left,
+   and long header words may break on two lines instead of squeezing the text. */
+function pngCols(head,body,CW){
+  const PADX=11,SZ=15,SZH=13.5,PADXH=9;
+  const num=head.map((h,i)=>i>0&&body.every(r=>!String(r[i]==null?'':r[i]).trim()||pngIsNum(r[i])));
+  const headLines=h=>{
+    const words=String(h).toUpperCase().replace(/\s*\((MT)\)$/,' ($1)').trim().split(' ');
+    if(words.length<2)return [words.join(' ')];
+    /* greedy wrap at ~max 2 lines */
+    const lines=[];let cur='';
+    words.forEach(w=>{const s=cur?cur+' '+w:w;if(pngW(s,SZH,700)>132&&cur){lines.push(cur);cur=w;}else cur=s;});
+    if(cur)lines.push(cur);
+    return lines.slice(0,2);
+  };
+  const w=head.map((h,i)=>{
+    let cw=0;
+    body.forEach(r=>{const t=String(r[i]==null?'':r[i]);if(t)cw=Math.max(cw,pngW(t,SZ,pngIsTot(r)?700:400));});
+    const hw=Math.max.apply(null,headLines(h).map(l=>pngW(l,SZH,700)));
+    return Math.max(cw+PADX*2+4,hw+PADXH*2+2,56);
+  });
+  const sum=w.reduce((a,b)=>a+b,0);
+  if(sum<CW){
+    const spare=CW-sum;
+    const flex=num.map((n,i)=>n?-1:i).filter(i=>i>=0);
+    if(flex.length){
+      const tot=flex.reduce((s,i)=>s+w[i],0)||1;
+      flex.forEach(i=>{w[i]+=spare*(w[i]/tot);});
+    }else{
+      w[w.length-1]+=spare;
+    }
+  }else if(sum>CW){
+    let over=sum-CW,guard=0;
+    const flex=num.map((n,i)=>n?-1:i).filter(i=>i>=0);
+    while(over>1&&guard++<80){
+      const tot=flex.reduce((s,i)=>s+Math.max(0,w[i]-90),0);
+      if(tot<=0)break;
+      flex.forEach(i=>{const give=Math.min(w[i]-90,over*((w[i]-90)/tot));w[i]-=give;over-=give;});
+    }
+    if(over>1){const f=w.reduce((a,b)=>a+b,0);w.forEach((v,i)=>w[i]=v*CW/f);}
+  }
+  const hLines=head.map(headLines);
+  const headH=Math.max.apply(null,hLines.map(l=>l.length))*17+16;
+  return {w,num,hLines,headH};
+}
+
+/* ---------- one table on the page flow ---------- */
+function pngTableSize(tb,CW){
+  const head=tb.head,body=tb.body||[];
+  const {w,num,hLines,headH}=pngCols(head,body,CW);
+  const PADX=11,PADY=9,SZ=15,SLH=20;
+  const rows=body.map(r=>{
+    const lines=head.map((h,i)=>pngWrap(r[i],SZ,pngIsTot(r)?700:400,w[i]-PADX*2));
+    return {r,lines,h:Math.max.apply(null,lines.map(l=>l.length))*SLH+PADY*2+2};
+  });
+  return {w,num,hLines,headH,rows,PADX,PADY,SZ,SLH};
+}
+
+function pngPages(rep){
+  const W=PNG_W,PAD=PNG_PAD,CW=W-PAD*2;
+  const pages=[];let cur=null;
+  const newPage=(first)=>{
+    cur={items:[],first:!!first,y:0,pageNo:pages.length+1};
+    cur.y=first?(PAD+52):(PAD+44);
+    pages.push(cur);
+    if(first){
+      cur.headerAt=cur.y-0;
+    }
+  };
+  const room=()=>PNG_PAGE-PNG_FOOT-cur.y;
+
+  const draw=[];   /* each item: {h, kind, draw(ctx,y), keep} */
+
+  /* title block */
+  const titleLines=pngWrap(rep.title,25,700,CW-172);
+  const metaLines=[];rep.meta.forEach(s=>pngWrap(s,14.5,400,CW).forEach(l=>metaLines.push(l)));
+
+  newPage(true);
+  draw.push({h:0,kind:'title',draw:(c)=>{
+    const y0=PAD+8;
+    const lg=document.querySelector('.logo-box img');
+    let lh=0;
+    if(lg&&lg.naturalWidth){
+      const lw=150;lh=lw*(lg.naturalHeight/lg.naturalWidth);
+      /* white plate so the logo reads on paper */
+      c.fillStyle='#FFFFFF';pngRR(c,PAD-6,y0-4,lw+12,lh+8,8);c.fill();
+      try{c.drawImage(lg,PAD,y0,lw,lh);}catch(e){}
+    }
+    let ty=y0-2+(lg?30:18);
+    const tx=PAD+(lg?172:0);
+    c.font=pngFont(25,700);c.fillStyle='#12302B';c.textAlign='left';
+    titleLines.forEach(l=>{ty+=30;c.fillText(l,tx,ty);});
+    ty=Math.max(ty,y0+(lg?lh:0))+4;
+    c.font=pngFont(14.5,400);c.fillStyle='#4A5F5A';
+    metaLines.forEach(l=>{ty+=20;c.fillText(l,PAD,ty);});
+    /* double rule under the header, like the printed sheet */
+    const ry=Math.max(ty+10,y0+(lg?lh:0)+16);
+    c.fillStyle='#12302B';c.fillRect(PAD,ry,CW,2);
+    c.fillStyle='#C9D6D3';c.fillRect(PAD,ry+4,CW,1);
+    return ry+18;
+  }});
+
+  rep.tables.forEach(tb=>{
+    if(!tb.body||!tb.body.length)return;
+    const spec=pngTableSize(tb,CW);
+    draw.push({h:tb.sub?34:10,kind:'sub',sub:tb.sub,draw:(c,y,cont)=>{
+      if(!tb.sub)return y+10;
+      c.font=pngFont(17,700);c.fillStyle='#12302B';c.textAlign='left';
+      c.fillText(tb.sub+(cont?' (continued)':''),PAD,y+22);
+      return y+34;
+    }});
+    draw.push({h:spec.rows.reduce((s,r)=>s+r.h,spec.headH),kind:'table',tb,spec});
+  });
+
+  /* signature block */
+  draw.push({h:86,kind:'sign',draw:(c,y)=>{
+    const yy=y+56, gap=CW/3;
+    c.font=pngFont(13,400);c.fillStyle='#3B4C48';c.textAlign='center';
+    ['Prepared by','Checked by','Approved by'].forEach((t,i)=>{
+      const cx=PAD+gap*i+gap/2;
+      c.fillStyle='#7A8F89';c.fillRect(PAD+gap*i+18,yy-30,gap-36,1);
+      c.fillStyle='#3B4C48';c.fillText(t,cx,yy-12);
+    });
+    c.textAlign='left';
+    return y+70;
+  }});
+
+  /* ---- flow ---- */
+  let pending={kind:'table',tb:null};
+  draw.forEach((it,idx)=>{
+    if(it.kind==='title'){cur.items.push(it);cur.y=it.draw(pngM(),0)||cur.y;/*height measured below*/}
+  });
+  /* simpler: walk and measure by drawing into a scratch canvas */
+  pages.length=0;cur=null;
+  newPage(true);
+  const scratch=document.createElement('canvas').getContext('2d');
+  draw.forEach(it=>{
+    if(it.kind==='title'){
+      const end=it.draw(scratch,0);
+      it.h=end-(PAD+8);
+      cur.items.push({it,top:PAD+8});
+      cur.y=PAD+8+it.h;
+      return;
+    }
+    if(it.kind==='sub'){
+      if(room()<it.h+90&&cur.items.length){newPage(false);}
+      cur.items.push({it,top:cur.y});
+      cur.y+=it.h;
+      return;
+    }
+    if(it.kind==='table'){
+      const {spec,spec:{rows,headH}}=it;
+      /* header row */
+      if(room()<headH+spec.rows[0].h){newPage(false);}
+      cur.items.push({it,part:'head',top:cur.y});cur.y+=headH;
+      let start=0;
+      spec.rows.forEach((row,ri)=>{
+        if(room()<row.h){
+          newPage(false);
+          cur.items.push({it,part:'head',top:cur.y});cur.y+=headH;
+        }
+        cur.items.push({it,part:'row',rowIndex:ri,top:cur.y});
+        cur.y+=row.h;
+      });
+      cur.y+=16;
+      return;
+    }
+    if(it.kind==='sign'){
+      if(room()<it.h)newPage(false);
+      cur.items.push({it,top:cur.y});
+      cur.y+=it.h;
+    }
+  });
+
+  /* ---- paint ---- */
+  const total=pages.length;
+  return pages.map((pg,pi)=>{
+    const last=pi===total-1;
+    const H=last?Math.min(PNG_PAGE,Math.round(pg.y+70)):PNG_PAGE;
+    const cv=document.createElement('canvas');
+    cv.width=W*PNG_SC;cv.height=H*PNG_SC;
+    const c=cv.getContext('2d');c.scale(PNG_SC,PNG_SC);c.textBaseline='alphabetic';
+    c.fillStyle='#FFFFFF';c.fillRect(0,0,W,H);
+
+    if(!pg.first){
+      c.font=pngFont(13,600);c.fillStyle='#58706A';c.textAlign='left';
+      c.fillText('RM Bin Forecast · '+rep.title,PAD,PAD+18);
+      c.textAlign='right';c.fillStyle='#7A8F89';c.font=pngFont(12.5,400);
+      c.fillText('page '+(pi+1)+' of '+total,W-PAD,PAD+18);
+      c.textAlign='left';
+      c.fillStyle='#C9D6D3';c.fillRect(PAD,PAD+26,CW,1);
+    }
+
+    pg.items.forEach(item=>{
+      const it=item.it,y=item.top;
+      if(it.kind==='title'){it.draw(c,0);return;}
+      if(it.kind==='sub'){it.draw(c,y);return;}
+      if(it.kind==='sign'){it.draw(c,y);return;}
+      if(it.kind==='table'){
+        const {tb,spec}=it,{w,num,headH,PADX,PADY,SZ,SLH}=spec;
+        if(item.part==='head'){
+          /* header row */
+          c.fillStyle='#EDF1F0';c.fillRect(PAD,y,CW,headH);
+          c.strokeStyle='#8C9B97';c.lineWidth=1;
+          let x=PAD;
+          tb.head.forEach((h,i)=>{
+            c.strokeRect(Math.round(x)+.5,Math.round(y)+.5,Math.round(w[i]),headH);
+            c.font=pngFont(13.5,700);c.fillStyle='#12302B';
+            c.textAlign=num[i]?'right':'left';
+            const ls=spec.hLines[i]||[String(h).toUpperCase()];
+            const tx=num[i]?x+w[i]-PADX:x+PADX;
+            let ty=y+(headH-ls.length*17)/2+13;
+            ls.forEach(l=>{c.fillText(l,tx,ty);ty+=17;});
+            x+=w[i];
+          });
+          c.textAlign='left';
+          return;
+        }
+        const row=spec.rows[item.rowIndex];
+        if(!row)return;
+        const bold=pngIsTot(row.r);
+        if(bold){c.fillStyle='#F3F6F5';c.fillRect(PAD,y,CW,row.h);}
+        c.strokeStyle='#A7B4B0';c.lineWidth=1;
+        let x=PAD;
+        tb.head.forEach((h,i)=>{
+          c.strokeRect(Math.round(x)+.5,Math.round(y)+.5,Math.round(w[i]),row.h);
+          c.font=pngFont(SZ,bold?700:400);c.fillStyle='#12302B';
+          c.textAlign=num[i]?'right':'left';
+          if(i===0&&!num[i])c.textAlign='center';
+          const lines=row.lines[i];
+          const tx=num[i]?x+w[i]-PADX:(i===0&&!num[i]?x+w[i]/2:x+PADX);
+          let ty=y+(row.h-lines.length*SLH)/2+SLH-5;
+          lines.forEach(l=>{c.fillText(l,tx,ty);ty+=SLH;});
+          x+=w[i];
+        });
+        c.textAlign='left';
+      }
+    });
+
+    /* footer */
+    c.fillStyle='#C9D6D3';c.fillRect(PAD,H-PNG_FOOT+34,CW,1);
+    c.font=pngFont(12.5,600);c.fillStyle='#58706A';c.textAlign='left';
+    c.fillText('RM Bin Forecast · Akij Agro Feed Ltd.',PAD,H-PNG_FOOT+56);
+    c.textAlign='right';c.font=pngFont(12.5,400);c.fillStyle='#7A8F89';
+    c.fillText('quantities in metric ton (MT) · page '+(pi+1)+' of '+total,W-PAD,H-PNG_FOOT+56);
+    c.textAlign='left';
+    return {canvas:cv,H,total,index:pi};
+  });
+}
+function pngBlob(rep){
+  const pg=pngPages(rep)[0];
+  return new Promise(res=>pg.canvas.toBlob(b=>res(b),'image/png'));
+}
+async function sharePng(rep){
+  try{
+    const pages=pngPages(rep);
+    const blobs=[];
+    for(const pg of pages){blobs.push(await new Promise(res=>pg.canvas.toBlob(b=>res(b),'image/png')));}
+    if(!blobs.length||!blobs[0]){toast('Could not build the picture.',4000);return;}
+    const base=(rep.file||'rm-report')+'-'+todayStr();
+    const name=i=>pages.length>1?base+'-p'+(i+1)+'.png':base+'.png';
+    const files=blobs.map((b,i)=>{try{return new File([b],name(i),{type:'image/png'});}catch(e){return null;}}).filter(Boolean);
+    const canShare=!!(files.length&&navigator.canShare&&navigator.canShare({files}));
+    const urls=blobs.map(b=>URL.createObjectURL(b));
+    const hint=pages.length>1?('This report fills <b>'+pages.length+' pages</b> — each page is saved as its own picture. Send them in order.'):'The page is saved as one picture — the same layout as the PDF/print report. Pinch to zoom on the phone.';
+    modal('Send as picture',
+      '<div class="note info" style="margin-bottom:10px">'+hint+'</div>'+
+      '<div class="pngprev">'+urls.map((u,i)=>'<img src="'+u+'" alt="Page '+(i+1)+'">'+(pages.length>1?'<div class="pngcap">Picture '+(i+1)+' of '+pages.length+'</div>':'')).join('')+'</div>',
+      '<button class="btn pri" data-pdl>Download '+(pages.length>1?pages.length+' pictures':'PNG')+'</button>'+(canShare?'<button class="btn pri" data-pshare>Share to WhatsApp…</button>':'')+'<button class="btn" data-pclose>Close</button>',
+      l=>{
+        const done=()=>{closeModal();setTimeout(()=>urls.forEach(u=>URL.revokeObjectURL(u)),800);};
+        l.querySelector('[data-pclose]').onclick=done;
+        l.querySelector('[data-pdl]').onclick=async()=>{
+          for(let i=0;i<blobs.length;i++){await saveFile(name(i),blobs[i]);}
+          if(blobs.length>1)toast(pages.length+' pictures saved · attach them in order',4200);
+        };
+        const sh=l.querySelector('[data-pshare]');
+        if(sh)sh.onclick=async()=>{try{await navigator.share({files,title:rep.title});}catch(e){if(!e||e.name!=='AbortError')toast('Use Download, then attach the pictures in WhatsApp.',4200);}};
+      });
+  }catch(e){toast('Could not build the picture: '+((e&&e.message)||'unknown error'),4200);}
+}
+
+function isPhone(){return window.matchMedia('(max-width:760px)').matches;}
+function filtSummary(){
+  const parts=[F.line==='ALL'?'All lines':(LINE_LABEL[F.line]||F.line)];
+  parts.push(F.from||F.to?((F.from||'…')+' → '+(F.to||'…')):'All dates');
+  parts.push(F.shift==='ALL'?'All shifts':'Shift '+F.shift);
+  parts.push(F.show==='pending'?'Pending only':'Pending + completed');
+  return parts.join(' · ');
+}
+function stampBinLabels(){
+  ['#v-bins table','#plan-list table','#v-intake table.bintab'].forEach(sel=>{
+    const t=$(sel);if(!t)return;
+    const hs=[].map.call(t.querySelectorAll('thead th'),h=>h.textContent.trim());
+    [].forEach.call(t.querySelectorAll('tbody tr'),tr=>{
+      if(tr.classList.contains('grp'))return;
+      [].forEach.call(tr.children,(td,i)=>{if(hs[i])td.setAttribute('data-l',hs[i]);});
+    });
+    [].forEach.call(t.querySelectorAll('tfoot tr'),tr=>{
+      [].forEach.call(tr.children,(td,i)=>{if(hs[i])td.setAttribute('data-l',hs[i]);});
+    });
+  });
+}
+function markTables(){
+  [].forEach.call(document.querySelectorAll('#app table'),t=>{
+    const hs=[].map.call(t.querySelectorAll('thead th'),h=>h.textContent.trim().toLowerCase());
+    t.classList.toggle('has-sl',hs[0]==='sl');
+    t.classList.toggle('has-intake',hs.indexOf('intake')>-1);
+  });
+}
+function mobileUI(){
+  /* collapsible filter bar */
+  const f=$('#filters');
+  if(f){
+    let t=$('#filtToggle');
+    if(!t){
+      t=document.createElement('button');
+      t.type='button';t.id='filtToggle';t.className='filtToggle';t.setAttribute('aria-expanded','false');
+      t.innerHTML='<span class="ft">Filters</span><span class="fs" id="filtSum"></span><span class="chev" aria-hidden="true">▾</span>';
+      t.onclick=()=>{
+        const open=f.classList.toggle('open');
+        t.setAttribute('aria-expanded',open?'true':'false');
+      };
+      f.insertBefore(t,f.firstChild);
+    }
+    const su=$('#filtSum');if(su)su.textContent=filtSummary();
+  }
+  /* keep the selected tab visible in the swipe strip */
+  const tabs=$('#tabs'),act=tabs&&tabs.querySelector('[aria-selected="true"]');
+  if(tabs&&act&&isPhone()){
+    const left=act.offsetLeft-tabs.offsetLeft;
+    if(left<tabs.scrollLeft||left+act.offsetWidth>tabs.scrollLeft+tabs.clientWidth){
+      tabs.scrollLeft=Math.max(0,left-(tabs.clientWidth-act.offsetWidth)/2);
+    }
+    if(!tabs.querySelector('.tabfade')){
+      const fd=document.createElement('span');
+      fd.className='tabfade';fd.setAttribute('aria-hidden','true');
+      tabs.appendChild(fd);
+      tabs.onscroll=()=>tabs.classList.toggle('at-end',tabs.scrollLeft+tabs.clientWidth>=tabs.scrollWidth-4);
+    }
+    tabs.classList.toggle('at-end',tabs.scrollLeft+tabs.clientWidth>=tabs.scrollWidth-4);
+  }
+  stampBinLabels();
+  markTables();
+}
+const _render=render;
+render=function(){_render();try{mobileUI();}catch(e){}};
+window.addEventListener('resize',()=>{try{mobileUI();}catch(e){}});
+
+
+window.__rmf={S,F,ctx,compute,render,boot,parseGrid,parseTextToFeeds,setStock,stockOf,intakeRows,reportOf,doShare,makeSnapshot,historyReport,saveSnapshot,binRows,sharePng,pngBlob,pngPages};
 boot();
 })();
 </script>

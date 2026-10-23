@@ -1,9 +1,12 @@
-# RM Bin Forecast — Firebase edition (v3.0.3)
+# RM Bin Forecast — Firebase edition (v3.1)
 
 A cloud version of your dashboard: **one link, any device, shared data, email + password login, roles, saved history.**
 Runs entirely on the **Firebase Spark (free) plan** — no credit card.
 
 Created & maintained by **Md Nawazish Ali** · Deputy Manager, Operations · Akij Agro Feed Ltd.
+
+v3.1: Share image (PNG) replaces "copy for email"; Final RM exports RM bins only; responsive phone/tablet layout.
+Shared output (PDF, CSV, picture, print) now says only **Akij Agro Feed Ltd.** — the creator name stays on the dashboard, not on reports.
 
 ---
 
@@ -153,10 +156,13 @@ Roles are enforced in **two** places: the page (buttons hidden) and the Firestor
 
 - **Feed Plan** — add the run: date, shift, feed code, line, MT. Tick when produced → forecast drops automatically.
 - **Intake Points** — type the stock in each RM bin; Required = forecast − stock, per bin. The bin section is a toggle and shows only the bins the plan needs.
-- **Final RM** — grand totals, export PDF / CSV / copy for email / print.
+- **Final RM** — two cards, each exporting only its own table. *Raw materials stocked in RM bins* → PDF / CSV / Share image / Print gives the RM-bin report alone (total + signature lines); *Other ingredients* exports just the ingredient list.
+- **Share image** — every card's third button saves the report as a WhatsApp-friendly picture in the old PDF-report layout (logo, ruled table, grey header, Prepared/Checked/Approved lines). Long reports continue on numbered pages.
 - **History** — "Save current view" freezes the plan + RM quantities + bin stock as a record. Each record re-opens as a report and exports.
 - **Formulas** — upload the new BOM .xlsx whenever a formulation changes; it shows what is new/updated before saving.
 - **Bin Setup** — change what each bin holds, its intake and its share weight.
+
+On a phone or tablet the layout rearranges itself: two-row header, swipeable tab strip, filters folded behind a "Filters" line, summary tiles two per row, and long tables (Feed Plan runs, Bin Setup bins, intake bin stock) shown as small labelled cards so nothing needs sideways scrolling.
 
 Everyone signed in sees the same data live — when an operator adds a run on the mill floor, your screen updates within a second.
 
