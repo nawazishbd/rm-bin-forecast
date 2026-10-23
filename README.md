@@ -1,10 +1,11 @@
-# RM Bin Forecast — Firebase edition (v3.1)
+# RM Bin Forecast — Firebase edition (v3.2)
 
 A cloud version of your dashboard: **one link, any device, shared data, email + password login, roles, saved history.**
 Runs entirely on the **Firebase Spark (free) plan** — no credit card.
 
 Created & maintained by **Md Nawazish Ali** · Deputy Manager, Operations · Akij Agro Feed Ltd.
 
+v3.2: **RM bin capacity** — the same Capacity (MT) column the local file has: type it in the intake card (beside Current stock) or in Bin Setup, and it appears in every export. Plus: every exported report keeps the **Intake section on one page** and the **RM bin stock & requirement section on one page** (PDF, Print and Share image).
 v3.1: Share image (PNG) replaces "copy for email"; Final RM exports RM bins only; responsive phone/tablet layout.
 Shared output (PDF, CSV, picture, print) now says only **Akij Agro Feed Ltd.** — the creator name stays on the dashboard, not on reports.
 
@@ -21,6 +22,27 @@ If your dashboard said **"not approved"** or kept you on the sign-in screen even
 4. Sign in. The owner named in `cfg/access` is now always treated as admin, and the dashboard creates the missing `members/{your-email}` row itself.
 
 Stuck? The app now shows a red **"Almost there — Firestore is locked"** screen with the exact steps, and a **Rules published — retry** button. Any error text is printed on that screen — send me a screenshot and I can read it.
+
+---
+
+## What changed in v3.2
+
+### RM bin capacity
+The cloud edition now carries the same capacity feature as the offline file:
+
+* **Intake Points tab** — each RM bin row has **Forecast · Stock · Capacity · Required**. The capacity box sits right beside the stock box; type the MT the bin can hold and the row totals update immediately (empty = not set).
+* **Bin Setup tab** — a **Capacity (MT)** column, so the whole silo list can be filled in one pass.
+* **Everything that reads the data** uses it: the card chips (`Forecast / Stock / Capacity / Required`), the totals row, and the PDF, CSV, Print and Share-image reports all show a **Capacity (MT)** column with the capacity total.
+
+### One page per section
+Every export now treats a report section as a single block:
+
+* **PDF** — a section that fits on a sheet is moved to the next page whole instead of being cut; if a long RM bin list needs it, the font steps down (9 → 6 pt) so the section still lands on one sheet.
+* **Print** — each section is wrapped and set to `page-break-inside: avoid`, so the browser never splits the Intake table or the RM bin table.
+* **Share image (PNG)** — the picture is split by section, never inside one: the Intake section is one picture, the RM bin section is the next.
+* **CSV** — rows stay in section order under their own heading (a spreadsheet has no pages).
+
+If a section is genuinely taller than a printed page (for example 60+ bins), the export still breaks it rather than shrinking it into unreadable text — but for normal plans every Intake and RM bin section now stays whole.
 
 ---
 

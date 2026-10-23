@@ -270,6 +270,18 @@ details.binsec[open]>summary .hint{padding-left:38px}
 
 .login ol.diag{margin:0;padding-left:20px;font-size:13px;line-height:1.6;color:var(--ink)}
 .login ol.diag code{font-family:var(--f-mono);font-size:12px;background:var(--surface2);padding:1px 4px;border-radius:4px}
+/* ---------- compact RM bin table (5 columns) ---------- */
+#v-intake .bintab th,#v-intake .bintab td{padding:7px 8px;font-size:12.5px;letter-spacing:.02em}
+#v-intake .bintab td.r input[type=number]{width:78px;padding:5px 6px;font-size:12.5px;text-align:right}
+#v-intake .bintab .bmat{display:block;font-size:11px;line-height:1.25;color:var(--muted);margin-top:2px;white-space:normal}
+#v-intake .bintab tbody tr{vertical-align:middle}
+@media (max-width:760px){#v-intake .bintab th,#v-intake .bintab td{padding:6px 5px;font-size:11.5px}#v-intake .bintab td.r input[type=number]{width:66px;font-size:12px}}
+/* ---------- compact RM bin table (5 columns) ---------- */
+#v-intake .bintab th,#v-intake .bintab td{padding:7px 8px;font-size:12.5px;letter-spacing:.02em}
+#v-intake .bintab td.r input[type=number]{width:78px;padding:5px 6px;font-size:12.5px;text-align:right}
+#v-intake .bintab .bmat{display:block;font-size:11px;line-height:1.25;color:var(--muted);margin-top:2px;white-space:normal}
+#v-intake .bintab tbody tr{vertical-align:middle}
+@media (max-width:760px){#v-intake .bintab th,#v-intake .bintab td{padding:6px 5px;font-size:11.5px}#v-intake .bintab td.r input[type=number]{width:66px;font-size:12px}}
 /* ---------- share-image preview ---------- */
 .pngcap{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;padding:2px 0 8px}
 .pngprev{max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface2);padding:8px;margin-top:6px}
@@ -491,6 +503,12 @@ body.is-locked #lockBtn{display:none}
 @media print{
   .filtToggle{display:none!important}
   #filters .fld{display:flex!important}
+  /* keep a whole report section on one printed page */
+  #print-area table{break-inside:avoid;page-break-inside:avoid}
+  #print-area tr{break-inside:avoid;page-break-inside:avoid}
+  #print-area h3{break-after:avoid;page-break-after:avoid}
+  #print-area .ph{break-after:avoid;page-break-after:avoid}
+  #print-area .sign{break-inside:avoid;page-break-inside:avoid}
 }
 
 </style>
@@ -799,7 +817,7 @@ function binRows(R,g){
     let qty=0,name=binName(b);
     if(m)m.forEach((v,k)=>{qty+=v;name=nameOf(k);});
     const stock=stockOf(b.code);
-    out.push({bin:b.code,name,qty,stock,req:Math.max(0,qty-stock),hasMat:!!b.mat});
+    out.push({bin:b.code,name,qty,stock,cap:Number(b.cap)||0,req:Math.max(0,qty-stock),hasMat:!!b.mat});
   });
   out.sort((a,b)=>a.bin.localeCompare(b.bin,undefined,{numeric:true}));
   return out;
@@ -820,10 +838,10 @@ function reportOf(kind,R){
     const g=kind==='intake12'?'12':'34',rows=intakeRows(R,g),bins=binRows(R,g).filter(b=>b.qty>0);
     const tot=sumBy(rows,'mt'),rq=sumBy(bins,'qty'),st=sumBy(bins,'stock'),rq2=sumBy(bins,'req');
     return {title:INTAKE_LABEL[g]+' – RM forecast and bin requirement (MT)',meta:[scopeText(),when],file:kind,
-      tables:[{head:['Sl','RM code','Raw material','Forecast qty (MT)'],
+      tables:[{grp:'intake',head:['Sl','RM code','Raw material','Forecast qty (MT)'],
                body:rows.map((r,i)=>[i+1,r.code,r.name,fmt(r.mt)]).concat([['','','Total',fmt(tot)]])},
-              {sub:'RM bin stock and requirement',head:['RM bin','Material','Forecast qty (MT)','Current stock (MT)','Required qty (MT)'],
-               body:bins.filter(b=>b.qty>0).map(b=>[b.bin,b.name,fmt(b.qty),fmt(b.stock),fmt(b.req)]).concat([['','Total',fmt(rq),fmt(st),fmt(rq2)]])}]};
+              {grp:'bins',sub:'RM bin stock, capacity and requirement',head:['RM bin','Material','Forecast qty (MT)','Current stock (MT)','Capacity (MT)','Required qty (MT)'],
+               body:bins.filter(b=>b.qty>0).map(b=>[b.bin,b.name,fmt(b.qty),fmt(b.stock),b.cap>0?fmt(b.cap):'',fmt(b.req)]).concat([['','Total',fmt(rq),fmt(st),bins.some(b=>b.cap>0)?fmt(bins.filter(b=>b.cap>0).reduce((s2,b)=>s2+b.cap,0)):'',fmt(rq2)]])}]};
   }
   if(kind==='final'){
     const t1=R.stocked.map((r,i)=>[i+1,r.code,r.name,fmt(r.mt)]).concat([['','','Total raw materials',fmt(R.stockedMT)]]);
@@ -849,18 +867,78 @@ function reportCsv(rep){
   rep.tables.forEach(t=>{s+='\n'+(t.sub?q(t.sub)+'\n':'')+t.head.map(q).join(',')+'\n'+t.body.map(r=>r.map(q).join(',')).join('\n')+'\n';});
   return '\ufeff'+s;
 }
+/* keep every report section whole: tables of one group share a page */
+function printTables(rep){
+  const one=t=>(t.sub?'<h3>'+esc(t.sub)+'</h3>':'')+
+    '<table><thead><tr>'+t.head.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+
+    t.body.map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+  let out='',group='';
+  rep.tables.filter(t=>t.body.length).forEach(t=>{
+    if(t.grp&&t.grp===group){out+=one(t);return;}
+    if(group)out+='</div>';
+    group=t.grp||'';
+    out+=(group?'<div class="pgrp">':'')+one(t);
+  });
+  return out+(group?'</div>':'');
+}
 function printReport(rep){
   const el=$('#print-area'),logo=$('.logo-box img');
   el.innerHTML='<div class="ph">'+(logo?'<img src="'+logo.src+'" alt="">':'')+'<div><h1>'+esc(rep.title)+'</h1>'+
     rep.meta.map(m=>'<p>'+esc(m)+'</p>').join('')+'</div></div>'+
-    rep.tables.filter(t=>t.body.length).map(t=>(t.sub?'<h3>'+esc(t.sub)+'</h3>':'')+
-      '<table><thead><tr>'+t.head.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+
-      t.body.map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table>').join('')+
+    printTables(rep)+
     '<div class="sign"><div>Prepared by</div><div>Checked by</div><div>Approved by</div></div>';
   document.body.classList.add('printing');
   const done=()=>{document.body.classList.remove('printing');window.removeEventListener('afterprint',done);};
   window.addEventListener('afterprint',done);
   setTimeout(()=>{try{window.print();}catch(e){}setTimeout(done,1200);},80);
+}
+/* how tall is this table on an A4 sheet (mm)? used to keep a whole section on one page */
+function pdfTableH(head,body,st,right){
+  try{
+    const probe=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
+    const o={startY:0,head:[head],body:body,styles:st,headStyles:{fillColor:[15,94,115]},margin:{left:14,right:14}};
+    if(right)o.columnStyles={[head.length-1]:{halign:'right'}};
+    probe.autoTable(o);
+    return probe.lastAutoTable.finalY;
+  }catch(e){return 0;}
+}
+/* draw the report; a section (subtitle + its tables) is never split when it fits on a page */
+function pdfTables(doc,rep,opt){
+  const o=opt||{},base=o.fs||9,pad=o.pad||1.8,gap=o.gap||8,right=o.right!==false;
+  const pageH=doc.internal.pageSize.getHeight(),bot=pageH-18,top=16;
+  const sizes=[];for(let f=base;f>=Math.max(6,base-2);f-=0.5)sizes.push(f);
+  const hs=sizes.map(fs=>rep.tables.map(t=>t.body.length?pdfTableH(t.head,t.body,{fontSize:fs,cellPadding:pad},right):0));
+  const rows=[];
+  let lastGrp='',fs=base;
+  rep.tables.forEach((t,i)=>{
+    if(!t.body.length)return;
+    if(t.grp&&t.grp!==lastGrp){
+      /* pick the largest font that keeps this whole section on one sheet */
+      fs=base;
+      const idx=rep.tables.map((x,j)=>j).filter(j=>rep.tables[j].grp===t.grp&&rep.tables[j].body.length);
+      for(let k=0;k<sizes.length;k++){
+        const tot=idx.reduce((s,j)=>s+hs[k][j]+(rep.tables[j].sub?gap:0),0);
+        if(tot<=pageH-40){fs=sizes[k];break;}
+      }
+      lastGrp=t.grp;
+    }
+    const k=sizes.indexOf(fs);
+    rows.push({t,i,h:hs[k<0?0:k][i],fs});
+  });
+  let y=o.startY||(22+rep.meta.length*5+2);
+  let g='',gNeed=0,firstOfGrp=true;
+  rows.forEach(r=>{
+    const t=r.t;
+    if(t.grp&&t.grp!==g){g=t.grp;firstOfGrp=true;gNeed=rows.filter(x=>x.t.grp===g).reduce((s,x)=>s+x.h+(x.t.sub?gap:0),0);}
+    const subH=t.sub?6:0;
+    const need=firstOfGrp&&t.grp?gNeed:subH+r.h;
+    if(need<=pageH-40&&y+need>bot){doc.addPage();y=top;}
+    if(t.sub){doc.setFontSize(11);doc.setTextColor(20);doc.text(t.sub,14,y+4);y+=6;}
+    doc.autoTable({startY:y,head:[t.head],body:t.body,styles:{fontSize:r.fs,cellPadding:pad},headStyles:{fillColor:[15,94,115]},
+      margin:{left:14,right:14},columnStyles:right?{[t.head.length-1]:{halign:'right'}}:{},pageBreak:'avoid'});
+    y=doc.lastAutoTable.finalY+gap;
+    firstOfGrp=false;
+  });
 }
 async function doShare(kind,how){
   const R=compute(),rep=reportOf(kind,R);if(!rep)return;
@@ -873,14 +951,7 @@ async function doShare(kind,how){
     const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
     doc.setFontSize(15);doc.text(rep.title,14,16);doc.setFontSize(9);doc.setTextColor(90);
     rep.meta.forEach((m,i)=>doc.text(m,14,22+i*5));
-    let y=22+rep.meta.length*5+2;
-    rep.tables.forEach(t=>{
-      if(t.sub){doc.setFontSize(11);doc.setTextColor(20);doc.text(t.sub,14,y+4);y+=6;}
-      if(!t.body.length)return;
-      doc.autoTable({startY:y,head:[t.head],body:t.body,styles:{fontSize:9,cellPadding:1.8},headStyles:{fillColor:[15,94,115]},margin:{left:14,right:14},
-        columnStyles:{[t.head.length-1]:{halign:'right'}}});
-      y=doc.lastAutoTable.finalY+8;
-    });
+    pdfTables(doc,rep,{fs:9,pad:1.8,gap:8});
     await saveFile(rep.file+'-'+stamp+'.pdf',doc.output('blob'));
   }
 }
@@ -973,7 +1044,7 @@ function intakeTablesHtml(R){
   ['12','34'].forEach(g=>{
     const rows=intakeRows(R,g),bins=binRows(R,g);
     const need=bins.filter(r=>r.qty>0);
-    const tot=sumBy(rows,'mt'),bq=sumBy(need,'qty'),bs=sumBy(need,'stock'),brq=sumBy(need,'req');
+    const tot=sumBy(rows,'mt'),bq=sumBy(need,'qty'),bs=sumBy(need,'stock'),brq=sumBy(need,'req'),bc=sumBy(need.filter(b=>b.cap>0),'cap');
     const t=rows.length?'<div class="tw"><table><thead><tr><th class="c">Sl</th><th>RM code</th><th>Raw material</th><th class="r">Forecast qty (MT)</th></tr></thead><tbody>'+
       rows.map((r,i)=>'<tr><td class="c num">'+(i+1)+'</td><td class="num">'+esc(r.code)+'</td><td>'+esc(r.name)+'</td><td class="r num">'+fmt(r.mt)+'</td></tr>').join('')+
       '</tbody><tfoot><tr><td></td><td></td><td>Total</td><td class="r num">'+fmt(tot)+'</td></tr></tfoot></table></div>'
@@ -983,19 +1054,20 @@ function intakeTablesHtml(R){
       const open=ctx._binOpen===undefined?true:ctx._binOpen;
       b='<details class="binsec"'+(open?' open':'')+'><summary>RM bin stock &amp; requirement <span class="chip">'+need.length+' bin'+(need.length===1?'':'s')+'</span>'+
         '<span class="hint">Only the bins this feed plan needs · type the MT each bin holds now</span></summary>'+
-        (need.length?'<div class="tw"><table class="bintab"><thead><tr><th>RM bin</th><th>Material</th><th class="r">Forecast (MT)</th><th class="r">Stock (MT)</th><th class="r">Required (MT)</th></tr></thead><tbody>'+
+        (need.length?'<div class="tw"><table class="bintab"><thead><tr><th>RM bin</th><th class="r">Forecast (MT)</th><th class="r">Stock (MT)</th><th class="r">Capacity (MT)</th><th class="r">Required (MT)</th></tr></thead><tbody>'+
           need.map(r=>{
-            const v=r.stock>0?r.stock.toFixed(3):'';
-            return '<tr><td class="num"><b>'+esc(r.bin)+'</b></td><td>'+esc(r.name)+'</td>'+
+            const v=r.stock>0?r.stock.toFixed(3):'',cv=r.cap>0?String(r.cap):'';
+            return '<tr><td><b class="num">'+esc(r.bin)+'</b><span class="bmat">'+esc(r.name)+'</span></td>'+
             '<td class="r num">'+fmt(r.qty)+'</td>'+
-            '<td class="r"><input type="number" min="0" step="0.001" inputmode="decimal" data-bstock="'+esc(r.bin)+'" value="'+esc(v)+'" placeholder="0.000"'+(ctx.write?'':' disabled')+' aria-label="Current stock in bin '+esc(r.bin)+' (MT)" style="width:96px"></td>'+
+            '<td class="r"><input type="number" min="0" step="0.001" inputmode="decimal" data-bstock="'+esc(r.bin)+'" value="'+esc(v)+'" placeholder="0.000"'+(ctx.write?'':' disabled')+' aria-label="Current stock in bin '+esc(r.bin)+' (MT)"></td>'+
+            '<td class="r"><input type="number" min="0" step="1" inputmode="decimal" data-bcap="'+esc(r.bin)+'" value="'+esc(cv)+'" placeholder="cap"'+(ctx.write?'':' disabled')+' aria-label="Capacity of bin '+esc(r.bin)+' (MT)"></td>'+
             '<td class="r num req'+(r.req<=0?' zero':'')+'">'+fmt(r.req)+'</td></tr>';
           }).join('')+
-          '</tbody><tfoot><tr><td></td><td>Total</td><td class="r num">'+fmt(bq)+'</td><td class="r num">'+fmt(bs)+'</td><td class="r num">'+fmt(brq)+'</td></tr></tfoot></table></div>'
+          '</tbody><tfoot><tr><td>Total</td><td class="r num">'+fmt(bq)+'</td><td class="r num">'+fmt(bs)+'</td><td class="r num">'+fmt(bc)+'</td><td class="r num">'+fmt(brq)+'</td></tr></tfoot></table></div>'
           :'<div class="empty"><b>No bin needed</b>No RM bin of this intake is drawn by the current feed plan.</div>')+
         '</details>';
     }
-    const chips='<div class="rmtot"><span>Forecast <b>'+fmt(tot)+'</b> MT</span><span>Stock <b>'+fmt(bs)+'</b> MT</span><span>Required <b>'+fmt(brq)+'</b> MT</span></div>';
+    const chips='<div class="rmtot"><span>Forecast <b>'+fmt(tot)+'</b> MT</span><span>Stock <b>'+fmt(bs)+'</b> MT</span><span>Capacity <b>'+fmt(bc)+'</b> MT</span><span>Required <b>'+fmt(brq)+'</b> MT</span></div>';
     h+=card(INTAKE_LABEL[g],scopeText()+' · bin wise stock and requirement',chips+shareBar(g==='12'?'intake12':'intake34'),t+b);
   });
   h+='</div>';
@@ -1032,12 +1104,13 @@ function renderBins(){
     '<td><input type="text" list="dl-rm" data-b="'+i+'" data-f="mat" value="'+esc(b.mat)+'" placeholder="RM code or empty" style="width:130px"'+dis+'></td>'+
     '<td>'+(known||isMaizeCode(b.mat)?'<span class="num">'+esc(shown)+'</span>'+(mz?' <span class="chip">→ 11113808</span>':''):(b.mat?'<input type="text" data-b="'+i+'" data-f="label" value="'+esc(b.label)+'" placeholder="Material name"'+dis+'>':'<span style="color:var(--muted)">Empty</span>'))+'</td>'+
     '<td>'+LINES.map(l=>'<label class="chip'+((b.lines||[]).includes(l)?' on':'')+'" style="cursor:'+(adm?'pointer':'default')+'"><input type="checkbox" data-b="'+i+'" data-l="'+esc(l)+'" '+((b.lines||[]).includes(l)?'checked':'')+dis+' style="width:auto;margin-right:3px"> '+esc(l)+'</label>').join('')+'</td>'+
+    '<td class="r"><input type="number" min="0" step="1" data-b="'+i+'" data-f="cap" value="'+(b.cap==null?'':b.cap)+'" placeholder="—" style="width:80px"'+dis+'></td>'+
     '<td class="r"><input type="number" min="0" step="0.5" data-b="'+i+'" data-f="w" value="'+(b.w==null?1:b.w)+'" style="width:70px"'+dis+'></td>'+
     '<td class="r">'+(adm?'<button class="btn sm danger" data-bdel="'+i+'">Remove</button>':'')+'</td></tr>';
   }).join('');
   h+=card('RM bin specification','Bin, intake group, material and the feed lines that draw from it',
     adm?'<button class="btn sm" id="b-add">Add bin</button><button class="btn sm danger" id="b-reset">Reset to factory list</button>':'',
-    '<div class="tw"><table><thead><tr><th>RM bin</th><th>Intake</th><th>RM code</th><th>Material</th><th>Feed lines</th><th class="r">Share weight</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>');
+    '<div class="tw"><table><thead><tr><th>RM bin</th><th>Intake</th><th>RM code</th><th>Material</th><th>Feed lines</th><th class="r">Capacity (MT)</th><th class="r">Share weight</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>');
   $('#v-bins').innerHTML=h;
 }
 function renderFormulas(){
@@ -1092,8 +1165,8 @@ function makeSnapshot(label){
     other:R.other.map(r=>({code:r.code,name:r.name,mt:Number(r.mt)||0})),
     intake:{'12':intakeRows(R,'12').map(r=>({code:r.code,name:r.name,mt:Number(r.mt)||0})),
             '34':intakeRows(R,'34').map(r=>({code:r.code,name:r.name,mt:Number(r.mt)||0}))},
-    bins:{'12':binRows(R,'12').filter(b=>b.qty>0).map(b=>({bin:b.bin,name:b.name,qty:Number(b.qty)||0,stock:Number(b.stock)||0,req:Number(b.req)||0})),
-          '34':binRows(R,'34').filter(b=>b.qty>0).map(b=>({bin:b.bin,name:b.name,qty:Number(b.qty)||0,stock:Number(b.stock)||0,req:Number(b.req)||0}))},
+    bins:{'12':binRows(R,'12').filter(b=>b.qty>0).map(b=>({bin:b.bin,name:b.name,qty:Number(b.qty)||0,stock:Number(b.stock)||0,cap:Number(b.cap)||0,req:Number(b.req)||0})),
+          '34':binRows(R,'34').filter(b=>b.qty>0).map(b=>({bin:b.bin,name:b.name,qty:Number(b.qty)||0,stock:Number(b.stock)||0,cap:Number(b.cap)||0,req:Number(b.req)||0}))},
     stock:Object.assign({},S.stock)
   };
 }
@@ -1105,14 +1178,17 @@ function historyReport(h){
     body:h.stocked.map((r,i)=>[i+1,r.code,r.name,fmt(r.mt)]).concat([['','','Total',fmt(h.stocked.reduce((s,x)=>s+(Number(x.mt)||0),0))]])};
   const t3={sub:'Other ingredients',head:['Sl','Code','Ingredient','Qty (MT)'],
     body:h.other.map((r,i)=>[i+1,r.code,r.name,fmt(r.mt,4)]).concat([['','','Total',fmt(h.other.reduce((s,x)=>s+(Number(x.mt)||0),0),4)]])};
-  const t4={sub:'Intake 1 + 2 (MT)',head:['Sl','RM code','Raw material','Forecast qty','Stock','Required'],
+  const t4={grp:'intake',sub:'Intake 1 + 2 (MT)',head:['Sl','RM code','Raw material','Forecast qty','Stock','Required'],
     body:h.intake['12'].map((r,i)=>{const b=(h.bins['12']||[]).filter(x=>x.name===r.name);const st=b.reduce((s,x)=>s+x.stock,0),rq=b.reduce((s,x)=>s+x.req,0);return [i+1,r.code,r.name,fmt(r.mt),fmt(st),fmt(rq)];})};
-  const t5={sub:'Intake 3 + 4 (MT)',head:['Sl','RM code','Raw material','Forecast qty','Stock','Required'],
+  const t5={grp:'intake',sub:'Intake 3 + 4 (MT)',head:['Sl','RM code','Raw material','Forecast qty','Stock','Required'],
     body:h.intake['34'].map((r,i)=>{const b=(h.bins['34']||[]).filter(x=>x.name===r.name);const st=b.reduce((s,x)=>s+x.stock,0),rq=b.reduce((s,x)=>s+x.req,0);return [i+1,r.code,r.name,fmt(r.mt),fmt(st),fmt(rq)];})};
-  const t6={sub:'RM bin requirement · Intake 1 + 2',head:['RM bin','Material','Forecast (MT)','Stock (MT)','Required (MT)'],
-    body:(h.bins['12']||[]).map(b=>[b.bin,b.name,fmt(b.qty),fmt(b.stock),fmt(b.req)])};
-  const t7={sub:'RM bin requirement · Intake 3 + 4',head:['RM bin','Material','Forecast (MT)','Stock (MT)','Required (MT)'],
-    body:(h.bins['34']||[]).map(b=>[b.bin,b.name,fmt(b.qty),fmt(b.stock),fmt(b.req)])};
+  const binTot=(list,f)=>fmt((list||[]).reduce((s2,b)=>s2+(Number(b[f])||0),0));
+  const binCap=list=>(list||[]).some(b=>Number(b.cap)>0)?binTot(list,'cap'):'';
+  const binTable=(sub,list)=>({grp:'bins',sub,head:['RM bin','Material','Forecast (MT)','Stock (MT)','Capacity (MT)','Required (MT)'],
+    body:(list||[]).map(b=>[b.bin,b.name,fmt(b.qty),fmt(b.stock),Number(b.cap)>0?fmt(b.cap):'',fmt(b.req)])
+      .concat([['','Total',binTot(list,'qty'),binTot(list,'stock'),binCap(list),binTot(list,'req')]])});
+  const t6=binTable('RM bin requirement · Intake 1 + 2',h.bins['12']);
+  const t7=binTable('RM bin requirement · Intake 3 + 4',h.bins['34']);
   return {title:'Saved RM forecast · '+h.label,meta:[histWindow(h),when],file:'rm-history-'+String(h.id),tables:[t1,t2,t3,t4,t5,t6,t7]};
 }
 function saveSnapshot(label){
@@ -1149,12 +1225,7 @@ async function shareSnapshot(id,how){
     const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
     doc.setFontSize(14);doc.text(rep.title,14,16);doc.setFontSize(9);doc.setTextColor(90);
     rep.meta.forEach((m,i)=>doc.text(m,14,22+i*5));
-    let y=22+rep.meta.length*5+2;
-    rep.tables.filter(t=>t.body.length).forEach(t=>{
-      if(t.sub){doc.setFontSize(10);doc.setTextColor(20);doc.text(t.sub,14,y+4);y+=6;}
-      doc.autoTable({startY:y,head:[t.head],body:t.body,styles:{fontSize:8,cellPadding:1.5},headStyles:{fillColor:[15,94,115]},margin:{left:14,right:14}});
-      y=doc.lastAutoTable.finalY+7;
-    });
+    pdfTables(doc,rep,{fs:8,pad:1.5,gap:7,right:false});
     await saveFile(rep.file+'-'+stamp+'.pdf',doc.output('blob'));
   }
 }
@@ -1392,10 +1463,11 @@ function refreshIntakeTotals(){
     const c=cards[i];if(!c)return;
     const rows=intakeRows(R,g),bins=binRows(R,g).filter(r=>r.qty>0);
     const tot=sumBy(rows,'mt'),bq=sumBy(bins,'qty'),bs=sumBy(bins,'stock'),brq=sumBy(bins,'req');
+    const bc=sumBy(bins.filter(b=>b.cap>0),'cap');
     const chips=c.querySelector('.rmtot');
-    if(chips)chips.innerHTML='<span>Forecast <b>'+fmt(tot)+'</b> MT</span><span>Stock <b>'+fmt(bs)+'</b> MT</span><span>Required <b>'+fmt(brq)+'</b> MT</span>';
+    if(chips)chips.innerHTML='<span>Forecast <b>'+fmt(tot)+'</b> MT</span><span>Stock <b>'+fmt(bs)+'</b> MT</span><span>Capacity <b>'+fmt(bc)+'</b> MT</span><span>Required <b>'+fmt(brq)+'</b> MT</span>';
     const foots=c.querySelectorAll('tfoot tr');
-    if(foots[1]&&foots[1].children.length>=5){const td=foots[1].children;td[2].textContent=fmt(bq);td[3].textContent=fmt(bs);td[4].textContent=fmt(brq);}
+    if(foots[1]&&foots[1].children.length>=5){const td=foots[1].children;td[1].textContent=fmt(bq);td[2].textContent=fmt(bs);td[3].textContent=fmt(bc);td[4].textContent=fmt(brq);}
   });
 }
 /* update one bin row after its stock input changes */
@@ -1466,6 +1538,14 @@ function bindGlobal(){
     if(t.dataset.done){const en=S.plan.find(x=>x.id===t.dataset.done);if(en){const n=Object.assign({},en,{done:t.checked,doneAt:t.checked?Date.now():null});guard(()=>putPlan(n));toast(t.checked?'Marked completed. Forecast updated.':'Back to pending');}return;}
     if(t.dataset.qty){const en=S.plan.find(x=>x.id===t.dataset.qty);const v=parseFloat(t.value);if(en&&v>0)guard(()=>putPlan(Object.assign({},en,{qty:Math.round(v*1000)/1000})));else renderSoon();return;}
     if(t.dataset.eline!==undefined){const en=S.plan.find(x=>x.id===t.dataset.eline);if(en){const n=Object.assign({},en);if(t.value)n.line=t.value;else delete n.line;guard(()=>putPlan(n));toast(t.value?'Run routed to the '+LINE_LABEL[t.value]+'':'Run back on its formula line');}return;}
+    if(t.dataset.bcap!==undefined){
+      const b=S.bins.find(x=>x.code===t.dataset.bcap);if(!b)return;
+      const v=Math.max(0,Math.round((parseFloat(t.value)||0)*100)/100);
+      b.cap=v;t.value=v>0?v:'';
+      guard(()=>putCfg('bins',S.bins));
+      refreshIntakeTotals();
+      return;
+    }
     if(t.dataset.bstock!==undefined){
       const v=Math.round((parseFloat(t.value)||0)*1000)/1000;
       setStock(t.dataset.bstock,v);
@@ -1603,6 +1683,7 @@ function bindBins(){
       const i=+el.dataset.b,b=S.bins[i];
       if(el.dataset.l){const on=el.checked;b.lines=(b.lines||[]).filter(x=>x!==el.dataset.l);if(on)b.lines.push(el.dataset.l);}
       else if(el.dataset.f==='mat'){b.mat=el.value.trim();}
+      else if(el.dataset.f==='cap'){b.cap=Math.max(0,parseFloat(el.value)||0);}
       else if(el.dataset.f==='w'){b.w=Math.max(0,parseFloat(el.value)||0);}
       else b[el.dataset.f]=el.value;
       commit();
@@ -1858,7 +1939,6 @@ async function boot(){
   });
 }
 
-/* ==================== firebase edition: share image + phone layout ==================== */
 /* ==================== share image (PNG) ====================
    Laid out like the printed / PDF report: logo + title, ruled tables with a grey
    header row, section subtitles, "Prepared by / Checked by / Approved by" lines.
@@ -1951,6 +2031,7 @@ function pngPages(rep){
     }
   };
   const room=()=>PNG_PAGE-PNG_FOOT-cur.y;
+  const PAGE_ROOM=PNG_PAGE-PNG_FOOT-(PAD+44);
 
   const draw=[];   /* each item: {h, kind, draw(ctx,y), keep} */
 
@@ -1986,13 +2067,14 @@ function pngPages(rep){
   rep.tables.forEach(tb=>{
     if(!tb.body||!tb.body.length)return;
     const spec=pngTableSize(tb,CW);
-    draw.push({h:tb.sub?34:10,kind:'sub',sub:tb.sub,draw:(c,y,cont)=>{
+    const tableH=spec.rows.reduce((s,r)=>s+r.h,spec.headH)+16;
+    draw.push({h:tb.sub?34:10,kind:'sub',sub:tb.sub,grp:tb.grp,nextH:tableH,draw:(c,y,cont)=>{
       if(!tb.sub)return y+10;
       c.font=pngFont(17,700);c.fillStyle='#12302B';c.textAlign='left';
       c.fillText(tb.sub+(cont?' (continued)':''),PAD,y+22);
       return y+34;
     }});
-    draw.push({h:spec.rows.reduce((s,r)=>s+r.h,spec.headH),kind:'table',tb,spec});
+    draw.push({h:spec.rows.reduce((s,r)=>s+r.h,spec.headH),kind:'table',tb,spec,grp:tb.grp,fullH:tableH});
   });
 
   /* signature block */
@@ -2017,6 +2099,10 @@ function pngPages(rep){
   pages.length=0;cur=null;
   newPage(true);
   const scratch=document.createElement('canvas').getContext('2d');
+  /* total height of each section group, so a whole section can move to the next picture */
+  const grpH={};
+  draw.forEach(it=>{if(it.grp)grpH[it.grp]=(grpH[it.grp]||0)+it.h+(it.kind==='table'?16:0);});
+  let lastGrp='';
   draw.forEach(it=>{
     if(it.kind==='title'){
       const end=it.draw(scratch,0);
@@ -2026,15 +2112,25 @@ function pngPages(rep){
       return;
     }
     if(it.kind==='sub'){
-      if(room()<it.h+90&&cur.items.length){newPage(false);}
+      /* a section that fits on a page is never split: move subtitle + table together */
+      const startGrp=it.grp&&it.grp!==lastGrp;
+      const need=startGrp?(grpH[it.grp]||0)+20:it.h+(it.nextH||0);
+      if(cur.items.length&&need>room()&&need<=PAGE_ROOM)newPage(false);
+      if(it.grp)lastGrp=it.grp;
+      else if(room()<it.h+90&&cur.items.length){newPage(false);}
       cur.items.push({it,top:cur.y});
       cur.y+=it.h;
       return;
     }
     if(it.kind==='table'){
       const {spec,spec:{rows,headH}}=it;
+      const fullH=it.fullH||(headH+rows.reduce((s,r)=>s+r.h,0)+16);
+      const startGrp=it.grp&&it.grp!==lastGrp;
+      const need=startGrp?(grpH[it.grp]||0)+20:fullH;
+      if(cur.items.length&&need>room()&&need<=PAGE_ROOM)newPage(false);
+      if(it.grp)lastGrp=it.grp;
       /* header row */
-      if(room()<headH+spec.rows[0].h){newPage(false);}
+      if(room()<headH+rows[0].h){newPage(false);}
       cur.items.push({it,part:'head',top:cur.y});cur.y+=headH;
       let start=0;
       spec.rows.forEach((row,ri)=>{
@@ -2127,7 +2223,7 @@ function pngPages(rep){
     c.textAlign='right';c.font=pngFont(12.5,400);c.fillStyle='#7A8F89';
     c.fillText('quantities in metric ton (MT) · page '+(pi+1)+' of '+total,W-PAD,H-PNG_FOOT+56);
     c.textAlign='left';
-    return {canvas:cv,H,total,index:pi};
+    return {canvas:cv,H,total,index:pi,items:pg.items};
   });
 }
 function pngBlob(rep){
@@ -2163,6 +2259,7 @@ async function sharePng(rep){
   }catch(e){toast('Could not build the picture: '+((e&&e.message)||'unknown error'),4200);}
 }
 
+/* ==================== phone / tablet helpers ==================== */
 function isPhone(){return window.matchMedia('(max-width:760px)').matches;}
 function filtSummary(){
   const parts=[F.line==='ALL'?'All lines':(LINE_LABEL[F.line]||F.line)];
@@ -2180,7 +2277,10 @@ function stampBinLabels(){
       [].forEach.call(tr.children,(td,i)=>{if(hs[i])td.setAttribute('data-l',hs[i]);});
     });
     [].forEach.call(t.querySelectorAll('tfoot tr'),tr=>{
-      [].forEach.call(tr.children,(td,i)=>{if(hs[i])td.setAttribute('data-l',hs[i]);});
+      [].forEach.call(tr.children,(td,i)=>{
+        const own=String(td.textContent||'').trim();
+        if(hs[i]&&own&&!/^total$/i.test(own))td.setAttribute('data-l',hs[i]);
+      });
     });
   });
 }
@@ -2226,6 +2326,7 @@ function mobileUI(){
   stampBinLabels();
   markTables();
 }
+
 const _render=render;
 render=function(){_render();try{mobileUI();}catch(e){}};
 window.addEventListener('resize',()=>{try{mobileUI();}catch(e){}});
